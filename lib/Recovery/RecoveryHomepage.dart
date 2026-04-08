@@ -243,6 +243,19 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
           );
         }
 
+        if (title == "Profile") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => Recoveryprofile(
+
+                mobileNo: widget.mobileNo,
+
+              ),
+            ),
+          );
+        }
+
         if (title == "Amount\nCounter") {
           Navigator.push(
             context,
@@ -250,7 +263,7 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
               builder: (_) =>CounterAmountPage
                    (agentName:  widget.agentName, pendingAmount: amountData?.pendingAmount ?? 0.0,
                 employeeId: widget.employeeId,
-                    // employeeId: widget.employeeId,
+
                   ),
             ),
           );
@@ -277,6 +290,8 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
                 ),
               ),
             );
+
+
 
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
