@@ -211,35 +211,42 @@ class _SaleViewMRPLedgerScreenState
                           3: FlexColumnWidth(1),
                           4: FlexColumnWidth(1),
                         },
-                          children: data.ledger.map((e) {
-                            return TableRow(children: [
+                        children: data.ledger.map((e) {
+                          final isOpening = e.particulars.toLowerCase().contains("opening");
+
+                          return TableRow(
+                            decoration: BoxDecoration(
+                              color: isOpening ? Colors.green.shade100 : null, // ✅ GREEN ROW
+                            ),
+                            children: [
                               cell(formatDate(e.date)),
 
-
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => SaleInvoiceDetailsScreen(
-                                      billNo: e.particulars.replaceAll(RegExp(r'[^0-9]'), ''),
-                                      date: formatDate(e.date),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => SaleInvoiceDetailsScreen(
+                                        billNo: e.particulars.replaceAll(RegExp(r'[^0-9]'), ''),
+                                        date: formatDate(e.date),
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                              child: cell(
-                                e.particulars,
-                                bold: true,
-                                color: Colors.blue, // 👈 यही add किया
+                                  );
+                                },
+                                child: cell(
+                                  e.particulars,
+                                  bold: true,
+                                  color: isOpening ? Colors.green.shade900
+                                      : Colors.blue, // ✅ TEXT COLOR
+                                ),
                               ),
-                            ),
 
-                            cell("₹ ${e.debit}"),
-                            cell("₹ ${e.credit}"),
-                            cell("₹ ${e.balance}"),
-                          ]);
-                        }).toList()
+                              cell("₹ ${e.debit}"),
+                              cell("₹ ${e.credit}"),
+                              cell("₹ ${e.balance}"),
+                            ],
+                          );
+                        }).toList(),
                       ),
 
                       /// 🔥 TOTAL
@@ -247,15 +254,16 @@ class _SaleViewMRPLedgerScreenState
                         border: TableBorder.all(),
                         children: [
                           TableRow(children: [
-                            cell("Total :", bold: true),
                             cell(""),
+                            cell("Total :", bold: true),
+
                             cell("₹ ${data.totalDebit}"),
                             cell("₹ ${data.totalCredit}"),
                             cell(""),
                           ]),
                           TableRow(children: [
-                            cell("Closing Balance :", bold: true),
                             cell(""),
+                            cell("Closing Balance :", bold: true),
                             cell(""),
                             cell(""),
                             cell("₹ ${data.closingBalance}", bold: true),

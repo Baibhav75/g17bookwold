@@ -87,6 +87,8 @@ class _SchoolProfilePageState extends State<SchoolProfilePage> {
                     style: const TextStyle(color: Colors.grey)),
 
                 _section("School Information"),
+                _item("School Code", p.schoolId, Icons.badge),
+
                 _item("Account Name", p.accountName, Icons.account_balance),
                 _item("Account Code", p.accountCode, Icons.code),
                 _item("Type", p.type, Icons.category),

@@ -22,12 +22,14 @@ class PurchaseSampleRevenueResponse {
 
 class PurchaseSampleItem {
   final String billNo;
+  final String publicationId;
   final String publication;
   final String date;
   final double amount;
 
   PurchaseSampleItem({
     required this.billNo,
+    required this.publicationId,
     required this.publication,
     required this.date,
     required this.amount,
@@ -36,6 +38,7 @@ class PurchaseSampleItem {
   factory PurchaseSampleItem.fromJson(Map<String, dynamic> json) {
     return PurchaseSampleItem(
       billNo: json['BillNo'].toString(),
+      publicationId: json['PublicationId'] ?? '', // ✅ ADD THIS
       publication: json['Publication'] ?? '',
       date: json['Dates'] ?? '',
       amount: (json['Amount'] ?? 0).toDouble(),

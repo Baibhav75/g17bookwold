@@ -23,12 +23,14 @@ class PurchaseNotForSaleResponse {
 class PurchaseItem {
   String billNo;
   String publication;
+  String publicationId; // ✅ NEW FIELD
   String date;
   double amount;
 
   PurchaseItem({
     required this.billNo,
     required this.publication,
+    required this.publicationId,
     required this.date,
     required this.amount,
   });
@@ -37,6 +39,7 @@ class PurchaseItem {
     return PurchaseItem(
       billNo: json['BillNo'] ?? '',
       publication: json['Publication'] ?? '',
+      publicationId: json['PublicationId'] ?? '', // ✅ FIX
       date: json['Dates'] ?? '',
       amount: (json['Amount'] ?? 0).toDouble(),
     );

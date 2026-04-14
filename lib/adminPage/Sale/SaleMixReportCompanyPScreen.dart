@@ -5,7 +5,6 @@ import 'package:share_plus/share_plus.dart';
 import '/pdf/salePdf/sale_mix_company_profit_pdf.dart';
 
 
-
 class SaleMixReportCompanyPScreen extends StatefulWidget {
   final String schoolId;
 

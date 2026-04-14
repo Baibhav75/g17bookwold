@@ -11,6 +11,7 @@ import 'package:bookworld/SchoolPage/school_page_screen.dart';
 import 'package:bookworld/counterPage/counter_main_page.dart';
 import 'package:bookworld/home_screen.dart';
 import 'package:bookworld/AgentStaff/agentStaffPage.dart';
+import 'package:bookworld/Recovery/RecoveryHomepage.dart';
 
 /// Service for securely storing and retrieving user credentials
 /// Also handles authentication and auto-login functionality
@@ -81,6 +82,13 @@ class SecureStorageService {
   static const String _keyCounterPassword = 'counter_password';
   static const String _keyCounterName = 'counter_name';
   static const String _keyCounterMobile = 'counter_mobile';
+
+  // Recovery Agent keys
+  static const String _keyRecoveryAgentMobile = 'recovery_agent_mobile';
+  static const String _keyRecoveryAgentPassword = 'recovery_agent_password';
+  static const String _keyRecoveryAgentPosition = 'recovery_agent_position';
+  static const String _keyRecoveryAgentName = 'recovery_agent_name';
+  static const String _keyRecoveryAgentEmployeeId = 'recovery_agent_employee_id';
 
 
   // ===========================================================================
@@ -225,30 +233,6 @@ class SecureStorageService {
       await _storage.write(key: _keyStaffAgentName, value: name); // Keeping original key for safety
       await _storage.write(key: _keyStaffEmail, value: email);
 
-      // 🛡️ ROLE INTEGRITY CHECK
-      // Only write role if it doesn't exist or is empty
-      // This prevents attendance flows from adhering to a side-effect that overwrites role
-      // However, for login we usually WANT to overwrite.
-      // User request says: "staff_employee_type is written ONLY if it does not already exist"
-      // But this is the LOGIN function. If I log in as a different user, I must overwrite.
-      // The user likely means: don't let OTHER flows overwrite it.
-      // But `saveAgentGetManCredentials` IS the login flow.
-      // Wait, the user said: "Update saveAgentGetManCredentials() so that: staff_employee_type is written ONLY if it does not already exist"
-      // This seems risky if I switch users.
-      // logic: If I am logging in, I am establishing a new session. I should overwrite.
-      // BUT, maybe this function is called elsewhere?
-      // It is called in `agentLoginPage.dart` line 86 and 115.
-      // Let's look at the user request again: "Attendance flow is indirectly modifying role data"
-      // It seems the user suspects `saveAgentGetManCredentials` is being called during attendance?
-      // I don't see it called in attendance files I read.
-      // However, I will follow the specific instruction: "Add a safe guard to prevent role mutation after login"
-      // Actually, if I am logging in, `_keyStaffEmployeeType` *should* be updated.
-      // Maybe the issue is that it's being called with a wrong role somewhere?
-      // I will implement a check: if `role` is passed, write it. But wait, checking if it exists prevents re-login as someone else?
-      // A safer approach for "Role Immutability" requested:
-      // "Update saveAgentGetManCredentials() so that: staff_employee_type is written ONLY if it does not already exist"
-      // This implies the user thinks this function is called *during* the session to update *other* details, and accidentally overwrites role.
-      // I will implement the check BUT I must sure clearAllCredentials() is called on logout. (It is).
 
       final existingRole = await _storage.read(key: _keyStaffEmployeeType);
       if (existingRole == null || existingRole.isEmpty) {
@@ -317,6 +301,30 @@ class SecureStorageService {
       debugPrint('   Counter Mobile: $mobileNo');
     } catch (e) {
       throw Exception('Failed to save counter credentials: $e');
+    }
+  }
+
+  /// Save Recovery Agent credentials
+  Future<void> saveRecoveryAgentCredentials({
+    required String mobile,
+    required String password,
+    required String position,
+    required String agentName,
+    required String employeeId,
+  }) async {
+    try {
+      await _storage.write(key: _keyUserType, value: 'recovery_agent');
+      await _storage.write(key: _keyIsLoggedIn, value: 'true');
+      
+      await _storage.write(key: _keyRecoveryAgentMobile, value: mobile);
+      await _storage.write(key: _keyRecoveryAgentPassword, value: password);
+      await _storage.write(key: _keyRecoveryAgentPosition, value: position);
+      await _storage.write(key: _keyRecoveryAgentName, value: agentName);
+      await _storage.write(key: _keyRecoveryAgentEmployeeId, value: employeeId);
+      
+      debugPrint('✅ Recovery Agent credentials saved');
+    } catch (e) {
+      throw Exception('Failed to save Recovery Agent credentials: $e');
     }
   }
 
@@ -518,6 +526,27 @@ class SecureStorageService {
 
   Future<String?> getCounterMobile() async {
     return await _storage.read(key: _keyCounterMobile);
+  }
+
+  /// Get Recovery Agent credentials
+  Future<Map<String, String?>> getRecoveryAgentCredentials() async {
+    try {
+      final mobile = await _storage.read(key: _keyRecoveryAgentMobile);
+      final password = await _storage.read(key: _keyRecoveryAgentPassword);
+      final position = await _storage.read(key: _keyRecoveryAgentPosition);
+      final agentName = await _storage.read(key: _keyRecoveryAgentName);
+      final employeeId = await _storage.read(key: _keyRecoveryAgentEmployeeId);
+
+      return {
+        'mobile': mobile,
+        'password': password,
+        'position': position,
+        'agentName': agentName,
+        'employeeId': employeeId,
+      };
+    } catch (e) {
+      throw Exception('Failed to get Recovery Agent credentials: $e');
+    }
   }
 
   /// Save agent school sale data (agentId and totalBills)
@@ -861,6 +890,13 @@ class SecureStorageService {
       await _storage.delete(key: _keyCounterPassword);
       await _storage.delete(key: _keyCounterName);
 
+      // Clear Recovery Agent credentials
+      await _storage.delete(key: _keyRecoveryAgentMobile);
+      await _storage.delete(key: _keyRecoveryAgentPassword);
+      await _storage.delete(key: _keyRecoveryAgentPosition);
+      await _storage.delete(key: _keyRecoveryAgentName);
+      await _storage.delete(key: _keyRecoveryAgentEmployeeId);
+
 
       // Clear check-in data
       await clearCheckInData();
@@ -911,6 +947,9 @@ class SecureStorageService {
 
         case 'counter':
           return const CounterMainPage();
+
+        case 'recovery_agent':
+          return await _getRecoveryAgentScreen();
 
         default:
           return const HomeScreen();
@@ -1023,6 +1062,34 @@ class SecureStorageService {
   /// -------------------------------------------------------------------------
   Future<Widget> _getSchoolScreen() async {
     return const SchoolPageScreen();
+  }
+
+  /// -------------------------------------------------------------------------
+  /// Auto Login → Recovery Agent
+  /// -------------------------------------------------------------------------
+  Future<Widget> _getRecoveryAgentScreen() async {
+    try {
+      final credentials = await getRecoveryAgentCredentials();
+      final mobile = credentials['mobile'];
+      final position = credentials['position'];
+      final agentName = credentials['agentName'];
+      final employeeId = credentials['employeeId'];
+
+      if (mobile == null || position == null || agentName == null || employeeId == null) {
+         await clearAllCredentials();
+         return const HomeScreen();
+      }
+
+      return RecoveryHomePage(
+        position: position,
+        agentName: agentName,
+        mobileNo: mobile,
+        employeeId: employeeId,
+      );
+    } catch (e) {
+      await clearAllCredentials();
+      return const HomeScreen();
+    }
   }
 
   /// ✅ Check if employee ID exists

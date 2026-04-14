@@ -1,3 +1,5 @@
+import 'package:bookworld/adminPage/AccountHodadminScreen/purchase_not_for_sale_invoice_Deatils.dart';
+import 'package:bookworld/adminPage/AccountHodadminScreen/purchase_not_for_sale_ledger_invoiceDetails.dart';
 import 'package:flutter/material.dart';
 import '../../Model/PurchaseNotForSale_model.dart';
 import '../../Service/PurchaseNotForSale_service.dart';
@@ -158,18 +160,71 @@ class _PurchaseNotForSaleScreenState
                           Expanded(
                               child: Text(formatDate(item.date))),
                           Expanded(
-                            child: IconButton(
-                              icon: const Icon(Icons.visibility,
-                                  color: Colors.blue),
-                              onPressed: () {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "View Bill ${item.billNo}"),
-                                  ),
-                                );
+                            child: PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == "details") {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PurchaseNotForSaleInvoiceScreen(
+                                        billNo: item.billNo,
+                                      ),
+                                    ),
+                                  );
+                                } else if (value == "ledger") {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PurchaseNotForSaleLedgerScreen(
+                                        publicationId: item.publicationId,
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: "details",
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.receipt_long, color: Colors.blue),
+                                      SizedBox(width: 8),
+                                      Text("View Details"),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: "ledger",
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.account_balance_wallet, color: Colors.green),
+                                      SizedBox(width: 8),
+                                      Text("View Ledger"),
+                                    ],
+                                  ),
+                                ),
+                              ],
+
+                              /// 👇 THIS IS YOUR BUTTON UI
+                              /// 🔥 BUTTON UI
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.visibility, color: Colors.white, size: 16),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      "View",
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],

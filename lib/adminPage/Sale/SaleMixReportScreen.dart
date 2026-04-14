@@ -7,6 +7,7 @@ import '../pdf/sale_mix_report_pdf.dart';
 class SaleMixReportScreen extends StatefulWidget {
   final String schoolId;
 
+
   const SaleMixReportScreen({super.key, required this.schoolId});
 
   @override
@@ -174,6 +175,10 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.red)));
           }
 
           if (!snapshot.hasData || snapshot.data == null) {

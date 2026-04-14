@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Service/agent_getman_login_service.dart';
 import '../Model/agent_getman_login_model.dart';
+import '../Service/secure_storage_service.dart';
 import 'RecoveryHomepage.dart';
 
 class RecoveryAgentLogin extends StatefulWidget {
@@ -56,6 +57,15 @@ class _RecoveryAgentLoginState extends State<RecoveryAgentLogin> {
       }
 
       if (!mounted) return;
+
+      final secureStorage = SecureStorageService();
+      await secureStorage.saveRecoveryAgentCredentials(
+        mobile: _mobileController.text.trim(),
+        password: _passwordController.text.trim(),
+        position: finalPosition,
+        agentName: response.agentName,
+        employeeId: response.employeeId,
+      );
 
       Navigator.pushReplacement(
         context,

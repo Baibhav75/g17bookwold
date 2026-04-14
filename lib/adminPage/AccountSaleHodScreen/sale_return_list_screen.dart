@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../SellReturn/sale_return_mrp_invoice_screenInvoice.dart';
 import '/Model/sale_return_list_model.dart';
 import '/Service/sale_return_list_service.dart';
 
@@ -6,12 +7,10 @@ class SaleReturnListScreen extends StatefulWidget {
   const SaleReturnListScreen({super.key});
 
   @override
-  State<SaleReturnListScreen> createState() =>
-      _SaleReturnListScreenState();
+  State<SaleReturnListScreen> createState() => _SaleReturnListScreenState();
 }
 
 class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
-
   List<SaleReturnItem> list = [];
   List<SaleReturnItem> filteredList = [];
 
@@ -48,9 +47,14 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
     });
   }
 
+  /// ✅ SAFE DATE FORMAT
   String formatDate(String rawDate) {
-    DateTime dt = DateTime.parse(rawDate);
-    return "${dt.day}-${dt.month}-${dt.year}";
+    try {
+      DateTime dt = DateTime.parse(rawDate);
+      return "${dt.day}-${dt.month}-${dt.year}";
+    } catch (e) {
+      return rawDate;
+    }
   }
 
   @override
@@ -65,11 +69,14 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
 
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : filteredList.isEmpty
+          ? const Center(child: Text("No Data Found"))
           : Column(
         children: [
-          /// 🔥 GRAND TOTAL (TOP)
+
+          /// 🔥 GRAND TOTAL
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: const EdgeInsets.all(10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.deepPurple.shade50,
@@ -79,25 +86,13 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Grand Total",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
-                  ),
-                ),
-                Text(
-                  "₹ ${grandTotal.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
-                  ),
-                ),
+                const Text("Grand Total",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text("₹ ${grandTotal.toStringAsFixed(2)}",
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
           ),
-
-
 
           /// 🔍 SEARCH
           Padding(
@@ -119,7 +114,7 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(
-                width: 800,
+                width: 820,
                 child: Column(
                   children: [
 
@@ -129,12 +124,12 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
                       padding: const EdgeInsets.all(10),
                       child: Row(
                         children: const [
-                          SizedBox(width: 60, child: Text("Sr No", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 80, child: Text("Bill No", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 240, child: Text("School", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 140, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 140, child: Text("Amount", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 80, child: Text("View", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 60, child: Text("Sr No")),
+                          SizedBox(width: 80, child: Text("Bill No")),
+                          SizedBox(width: 240, child: Text("School")),
+                          SizedBox(width: 140, child: Text("Date")),
+                          SizedBox(width: 140, child: Text("Amount")),
+                          SizedBox(width: 100, child: Text("Action")),
                         ],
                       ),
                     ),
@@ -155,29 +150,58 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
                             ),
                             child: Row(
                               children: [
+
                                 SizedBox(width: 60, child: Text("${index + 1}")),
                                 SizedBox(width: 80, child: Text(item.billNo)),
+
+                                /// ✅ FIXED SCHOOL
                                 SizedBox(
                                   width: 240,
                                   child: Text(
                                     item.schoolName,
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+
                                 SizedBox(width: 140, child: Text(formatDate(item.date))),
+
                                 SizedBox(
                                   width: 140,
                                   child: Text("₹ ${item.amount.toStringAsFixed(2)}"),
                                 ),
+
+                                /// ACTION
                                 SizedBox(
-                                  width: 80,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.visibility, color: Colors.blue),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text("View Bill ${item.billNo}")),
-                                      );
+                                  width: 100,
+                                  child: PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == "details") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => SaleReturnMrpInvoiceScreen(
+                                              billNo: item.billNo,
+                                            ),
+                                          ),
+                                        );
+                                      } else if (value == "ledger") {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text("Ledger for ${item.billNo}")),
+                                        );
+                                      }
                                     },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: "details",
+                                        child: Text("MRP Details"),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: "ledger",
+                                        child: Text("MRP Ledger"),
+                                      ),
+                                    ],
+                                    child: const Icon(Icons.visibility, color: Colors.blue),
                                   ),
                                 ),
                               ],
@@ -189,25 +213,6 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
                   ],
                 ),
               ),
-            ),
-          ),
-
-          /// GRAND TOTAL
-          Container(
-            padding: const EdgeInsets.all(15),
-            color: Colors.deepPurple,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Grand Total",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "₹ ${grandTotal.toStringAsFixed(2)}",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ],
             ),
           ),
         ],

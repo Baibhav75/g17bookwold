@@ -1,5 +1,6 @@
 class SchoolProfileModel {
   final int id;
+  final String schoolId;
   final String schoolName;
   final String ownerName;
   final String ownerNumber;
@@ -24,6 +25,7 @@ class SchoolProfileModel {
 
   SchoolProfileModel({
     required this.id,
+    required this.schoolId,
     required this.schoolName,
     required this.ownerName,
     required this.ownerNumber,
@@ -50,6 +52,7 @@ class SchoolProfileModel {
   factory SchoolProfileModel.fromJson(Map<String, dynamic> json) {
     return SchoolProfileModel(
       id: json['Id'] ?? 0,
+      schoolId: json['SchoolId'] ?? '',
       schoolName: json['SchoolName'] ?? '',
       ownerName: json['OwnerName'] ?? '',
       ownerNumber: json['OwnerNumber'] ?? '',

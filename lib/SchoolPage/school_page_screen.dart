@@ -7,6 +7,7 @@ import 'package:bookworld/Service/secure_storage_service.dart';
 import 'package:bookworld/home_screen.dart';
 import '../Service/school_profile_service.dart';
 import '../Model/school_profile_model.dart';
+import '../adminPage/Sale/SaleMixReportScreen.dart';
 import 'OrderFormPage.dart';
 import 'new_ticket_screen.dart';
 import 'orderBooknow.dart';
@@ -20,6 +21,7 @@ class SchoolPageScreen extends StatefulWidget {
 
 class _SchoolPageScreenState extends State<SchoolPageScreen > {
   int _currentIndex = 0;
+  String _schoolId = '';
   String _ownerName = '';
   String _ownerNumber = '';
   String _schoolName = '';
@@ -36,6 +38,7 @@ class _SchoolPageScreenState extends State<SchoolPageScreen > {
     try {
       final credentials = await _storageService.getSchoolCredentials();
 
+
       final mobileNo = credentials['schoolId'] ?? '';
 
       if (mobileNo.isEmpty) return;
@@ -45,6 +48,7 @@ class _SchoolPageScreenState extends State<SchoolPageScreen > {
       await SchoolProfileService.fetchProfile(mobileNo: mobileNo);
 
       setState(() {
+        _schoolId = profile.schoolId; // ✅ CORRECT (SCH035)
         _ownerNumber = mobileNo;
         _schoolName = profile.schoolName;   // ✅ MAIN CHANGE
         _ownerName = profile.ownerName;     // optional
@@ -354,7 +358,28 @@ class _SchoolPageScreenState extends State<SchoolPageScreen > {
                     setState(() => _currentIndex = 3);
                   },
                 ),
+                _menuItem(
+                  "Oder Stock",
+                  Icons.stacked_bar_chart,
+                  Colors.purple,
+                      () {
+                    if (_schoolId.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("School data not loaded")),
+                      );
+                      return;
+                    }
 
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SaleMixReportScreen(
+                          schoolId: _schoolId, // ✅ NO toString needed
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 _menuItem(
                   "Available Stock",
                   Icons.inventory_2, // 📦 stock

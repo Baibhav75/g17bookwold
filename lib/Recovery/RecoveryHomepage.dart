@@ -11,6 +11,7 @@ import 'RecoveryProfile.dart';
 import 'TransferHistory.dart';
 import 'changePasswordRecovery.dart';
 import 'counterAmount.dart';
+import '../Service/secure_storage_service.dart';
 
 class RecoveryHomePage extends StatefulWidget {
   final String position;
@@ -37,6 +38,7 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
 
   ReceivePendingAmountModel? amountData;
   bool isLoadingAmount = true;
+  bool isNavigating = false; // 👈 ADD THIS LINE
 
 
   @override
@@ -208,6 +210,7 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
             ),
           );
         }
+
         if (title == "Pending Dues") {
           Navigator.push(
             context,
@@ -271,32 +274,38 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
 
         else if (title == "Collect Amount") {
 
-          final data =
-          await _service.fetchAssignedSchools(widget.employeeId);
+          if (isNavigating) return; // 🚫 multiple click block
 
-          if (data != null &&
-              data.status?.toLowerCase() == "success" &&
-              data.data?.schools != null &&
-              data.data!.schools!.isNotEmpty) {
+          setState(() => isNavigating = true);
 
-            final school = data.data!.schools!.first;
+          try {
+            final data =
+            await _service.fetchAssignedSchools(widget.employeeId);
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CollectAmountPage(
-                  schoolId: school.schoolId ?? "",
-                  schoolName: school.schoolName ?? "",
+            if (data != null &&
+                data.status?.toLowerCase() == "success" &&
+                data.data?.schools != null &&
+                data.data!.schools!.isNotEmpty) {
+
+              final school = data.data!.schools!.first;
+
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CollectAmountPage(
+                    schoolId: school.schoolId ?? "",
+                    schoolName: school.schoolName ?? "",
+                  ),
                 ),
-              ),
-            );
+              );
 
-
-
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No schools found")),
-            );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("No schools found")),
+              );
+            }
+          } finally {
+            setState(() => isNavigating = false); // ✅ reset
           }
         }
       },
@@ -418,12 +427,17 @@ class _RecoveryHomePageState extends State<RecoveryHomePage> {
           ),
           const Divider(),
 
-          // UI-ONLY LOGOUT
+          // ACTUAL LOGOUT
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text("Logout"),
-            onTap: () {
-              Navigator.pop(context);
+            onTap: () async {
+              // Delete credentials from secure storage
+              final secureStorage = SecureStorageService();
+              await secureStorage.logout();
+              
+              if (!context.mounted) return;
+              Navigator.pop(context); // close drawer
               Navigator.pop(context); // back to login
             },
           ),

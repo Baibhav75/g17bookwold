@@ -1,3 +1,4 @@
+import 'package:bookworld/adminPage/CollectionManagement/receive_collection_screen.dart';
 import 'package:bookworld/adminPage/CollectionManagement/recovery_pending_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -48,7 +49,13 @@ class CollectionHodScreen extends StatelessWidget {
               icon: Icons.check_circle,
               color: Colors.green,
               onTap: () {
-                // TODO: Add screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReceiveCollectionScreen(),
+                  ),
+                );
+
               },
             ),
 

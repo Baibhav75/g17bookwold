@@ -13,7 +13,7 @@ import 'SaleMixReportScreen.dart';
 
 class SaleInvoiceHistoryScreen extends StatefulWidget {
   const SaleInvoiceHistoryScreen({super.key});
-
+//history file
   @override
   State<SaleInvoiceHistoryScreen> createState() =>
       _SaleInvoiceHistoryScreenState();
@@ -79,7 +79,7 @@ class _SaleInvoiceHistoryScreenState
         backgroundColor: const Color(0xFF6B46C1),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          "Sale Invoice History",
+          "Sale Invoice History ",
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -302,8 +302,6 @@ class _SaleInvoiceHistoryScreenState
                                         case "ledger":
                                           print("Discount Ledger");
                                           break;
-
-
 
                                       }
                                     },
