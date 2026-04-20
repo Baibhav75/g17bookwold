@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/Model/receive_collection_model.dart';
 import '/Service/receive_collection_service.dart';
+import 'package:intl/intl.dart';
 
 class ReceiveCollectionScreen extends StatefulWidget {
   const ReceiveCollectionScreen({super.key});
@@ -25,6 +26,16 @@ class _ReceiveCollectionScreenState extends State<ReceiveCollectionScreen> {
     setState(() {
       filteredList = results;
     });
+  }
+  String formatDate(String dateStr) {
+    if (dateStr.isEmpty) return '';
+
+    try {
+      DateTime date = DateTime.parse(dateStr);
+      return DateFormat('d/M/yyyy').format(date); // ✅ 2/12/2025
+    } catch (e) {
+      return '';
+    }
   }
 
 
@@ -119,7 +130,7 @@ class _ReceiveCollectionScreenState extends State<ReceiveCollectionScreen> {
                           DataCell(Text("₹ ${item.amount}")),
                           DataCell(Text(item.receivedBy)),
                           DataCell(Text(item.status)),
-                          DataCell(Text(item.date.split("T")[0])), // ✅ clean date
+                          DataCell(Text(formatDate(item.date))), // ✅ clean date
                           DataCell(Text(item.receiptNo)),
                           DataCell(Text(item.paymentMode)),
                           DataCell(

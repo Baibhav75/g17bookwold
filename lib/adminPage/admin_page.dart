@@ -21,6 +21,7 @@ import 'AccountHodadminScreen/admin_drawer.dart';
 import 'BilingPurchase/PurchaseInvoice.dart';
 import 'CollectionManagement/CollectionManagementScreen.dart';
 import 'CollectionManagement/collection_hod_screen.dart';
+import 'AccountHodadminScreen/HrmHodScreen.dart';
 import 'SellReturn/order_agreement_list_screen.dart';
 import 'SellReturn/order_list_screen.dart';
 import 'ViewProductList.dart';
@@ -105,6 +106,7 @@ class _AdminPageState extends State<AdminPage> {
     {'title': 'SALE\nHOD', 'icon': Icons.point_of_sale, 'color': Colors.green},
     {'title': 'COLLECTION\nHod', 'icon': Icons.account_balance_wallet, 'color': Colors.deepPurple},
     {'title': 'MARKETING\nHod', 'icon': Icons.campaign, 'color': Colors.pink},
+    {'title': 'HRM\nHOD', 'icon': Icons.people, 'color': Colors.teal},
     {'title': 'Assign\nRecovery', 'icon': Icons.assignment, 'color': Colors.blueGrey},
 
   ];
@@ -349,6 +351,15 @@ class _AdminPageState extends State<AdminPage> {
 
       case 'MARKETING\nHOD':
 
+        break;
+
+      case 'HRM\nHOD':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HrmHodScreen(mobileNo: mobileNo),
+          ),
+        );
         break;
 
       case 'Assign\nRecovery':

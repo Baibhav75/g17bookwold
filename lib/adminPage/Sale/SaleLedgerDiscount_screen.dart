@@ -263,7 +263,7 @@ class _SaleLedgerDiscountScreenState extends State<SaleLedgerDiscountScreen> {
                           /// DATA
                           ...data.ledger.map((e) {
                             return TableRow(children: [
-                              _cell(formatDate(e.date)),
+                              _cell(e.type == "Opening" ? "" : formatDate(e.date)),
                               _cell(e.type),
                               GestureDetector(
                                 onTap: () {

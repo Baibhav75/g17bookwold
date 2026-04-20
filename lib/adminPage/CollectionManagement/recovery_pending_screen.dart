@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/Model/recovery_pending_list_model.dart';
 import '/service/recovery_pending_service.dart';
+import 'package:intl/intl.dart';
 
 class RecoveryPendingScreen extends StatefulWidget {
   const RecoveryPendingScreen({super.key});
@@ -13,6 +14,7 @@ class RecoveryPendingScreen extends StatefulWidget {
 class _RecoveryPendingScreenState extends State<RecoveryPendingScreen> {
   bool isLoading = true;
   String? errorMessage;
+  Set<int> selectedIndexes = {};
 
   List<RecoveryItem> filteredList = [];
   List<RecoveryItem> originalList = [];
@@ -20,6 +22,17 @@ class _RecoveryPendingScreenState extends State<RecoveryPendingScreen> {
   TextEditingController searchController = TextEditingController();
 
   double totalAmount = 0.0;
+
+  String formatDate(String dateStr) {
+    if (dateStr.isEmpty) return '';
+
+    try {
+      DateTime date = DateTime.parse(dateStr);
+      return DateFormat('d/M/yyyy').format(date); // ✅ 2/12/2025
+    } catch (e) {
+      return '';
+    }
+  }
 
   @override
   void initState() {
@@ -77,6 +90,8 @@ class _RecoveryPendingScreenState extends State<RecoveryPendingScreen> {
       appBar: AppBar(
         title: const Text("Pending Recovery"),
         backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,6 +139,7 @@ class _RecoveryPendingScreenState extends State<RecoveryPendingScreen> {
                 child: DataTable(
                   columnSpacing: 20,
                   columns: const [
+                    DataColumn(label: Text("Select")), // ✅ NEW
                     DataColumn(label: Text("Sr No")),
                     DataColumn(label: Text("School Name")),
                     DataColumn(label: Text("Address")),
@@ -139,18 +155,48 @@ class _RecoveryPendingScreenState extends State<RecoveryPendingScreen> {
                           (index) {
                         final item = filteredList[index];
 
-                        return DataRow(cells: [
-                          DataCell(Text("${index + 1}")),
-                          DataCell(Text(item.schoolName)),
+                        return DataRow(
+                            selected: selectedIndexes.contains(index),
+                            cells: [
+                              /// ✅ CHECKBOX CELL
+                              DataCell(
+                                Checkbox(
+                                  value: selectedIndexes.contains(index),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedIndexes.add(index);
+
+                                        /// 🔥 POPUP WHEN CHECKED
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                            title: Text(item.schoolName),
+                                            content: Text(
+                                              "Amount: ₹${item.amount}\n"
+                                                  "Status: ${item.status}\n"
+                                                  "Recovery By: ${item.receivedBy}",
+                                            ),
+                                          ),
+                                        );
+
+                                      } else {
+                                        selectedIndexes.remove(index);
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+
+                              /// Sr No
+                              DataCell(Text("${index + 1}")),
+
+                              DataCell(Text(item.schoolName)),
                           DataCell(Text(item.schoolAddress)),
                           DataCell(Text("₹ ${item.amount}")),
                           DataCell(Text(item.receivedBy)),
                           DataCell(Text(item.status)),
-                          DataCell(Text(
-                            item.date.isNotEmpty
-                                ? item.date.split("T")[0]
-                                : '',
-                          )),
+                              DataCell(Text(formatDate(item.date))),
                           DataCell(Text(item.receiptNo)),
                           DataCell(Text(item.paymentMode)),
                           DataCell(

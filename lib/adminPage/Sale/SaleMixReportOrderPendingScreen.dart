@@ -110,11 +110,54 @@ class _SalePendingMixOrderScreenState
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   color: Colors.white,
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      /// 🔹 LEFT SIDE ICON
+                      Column(
+                        children: const [
+                          Icon(Icons.menu_book, size: 45, color: Colors.brown),
+                          SizedBox(height: 5),
+                          Text(
+                            "BOOK WORLD",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      /// 🔹 CENTER CONTENT
+                      Expanded(
+                        child: Column(
+                          children: const [
+                            Text(
+                              "GJ BOOK WORLD PVT. LTD.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2B4C7E),
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "D-1/20, SECTOR 22, GIDA, GORAKHPUR\nCont. - 9354918638",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            SizedBox(height: 6),
+
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 40),
+
                       // ================= HEADER =================
                       const Center(
+
+
                         child: Text(
                           "Sale and Order Pending Mix Report",
                           style: TextStyle(

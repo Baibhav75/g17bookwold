@@ -20,6 +20,7 @@ import '../interviewList.dart';
 import '../sell_school_list_page.dart';
 import '../../staffPage/staffhistory.dart';
 import '../publication_agreement_page.dart';
+import 'HrmHodScreen.dart';
 
 class AdminDrawer extends StatelessWidget {
   final String adminName;
@@ -201,29 +202,34 @@ class AdminDrawer extends StatelessWidget {
           /// HRM
           _expandableDrawerItem(Icons.people, 'HRM', [
 
-            _drawerSubItemNumber(context,'View Employee',1, () {
+            _drawerSubItemNumber(context,'HRM Dashboard',1, () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => HrmHodScreen(mobileNo: mobileNo)));
+            }),
+
+            _drawerSubItemNumber(context,'View Employee',2, () {
               Navigator.push(context,
                   MaterialPageRoute(builder: (_) => HRMViewEmployee()));
             }),
 
-            _drawerSubItemNumber(context,'InOut list',2, () {
+            _drawerSubItemNumber(context,'InOut list',3, () {
               Navigator.push(context,
                   MaterialPageRoute(builder: (_) => InOutManagementPage()));
             }),
 
-            _drawerSubItemNumber(context,'Attendance History',3, () {
+            _drawerSubItemNumber(context,'Attendance History',4, () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (_) => HistoryPage(mobileNo: mobileNo)));
             }),
 
-            _drawerSubItemNumber(context,'Interview List',4, () {
+            _drawerSubItemNumber(context,'Interview List',5, () {
               Navigator.push(context,
                   MaterialPageRoute(builder: (_) => InterviewList()));
             }),
 
-            _drawerSubItemNumber(context,'All School List',5, () {
+            _drawerSubItemNumber(context,'All School List',6, () {
               Navigator.push(context,
                   MaterialPageRoute(builder: (_) => SellSchoolListPage()));
             }),

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../HomePagelist/addDayBook.dart';
 import '../../HomePagelist/dayBookHistory.dart';
 import '../Sale/SaleScreen.dart';
+import 'AccountHodAddCashier.dart';
 import 'PURCHASE.dart';
 
 class AccountHodScreen extends StatelessWidget {
@@ -41,6 +42,11 @@ class AccountHodScreen extends StatelessWidget {
       "title": "REVENUE",
       "icon": Icons.trending_up,
       "color": Colors.teal,
+    },
+    {
+      "title": "ADD CASHIER",
+      "icon": Icons.money,
+      "color": Colors.green,
     },
   ];
 
@@ -193,6 +199,15 @@ class AccountHodScreen extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => AddDayBook(),
+          ),
+        );
+        break;
+
+      case "ADD CASHIER":
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CashierScreen (),
           ),
         );
         break;
