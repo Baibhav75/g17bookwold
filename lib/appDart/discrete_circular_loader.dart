@@ -1,7 +1,9 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'custom_refresh_indicator.dart'; // Import our new shimmer components
 
-class SchoolLoader extends StatefulWidget {
+/// A Shimmer-based skeleton loader that replaces the old circular spinner.
+/// This provides a more modern and premium loading experience.
+class SchoolLoader extends StatelessWidget {
   final double size;
   final Color color;
 
@@ -12,84 +14,69 @@ class SchoolLoader extends StatefulWidget {
   });
 
   @override
-  State<SchoolLoader> createState() => _SchoolLoaderState();
-}
-
-class _SchoolLoaderState extends State<SchoolLoader>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  final int dotCount = 8;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-
-          /// 📚 CENTER ICON (BOOK)
-          Icon(
-            Icons.menu_book,
-            size: widget.size / 2,
-            color: widget.color,
-          ),
-
-          /// 🔄 ROTATING DOTS
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (_, __) {
-              return Stack(
-                alignment: Alignment.center,
-                children: List.generate(dotCount, (index) {
-                  final angle = (2 * pi / dotCount) * index;
-
-                  final progress =
-                  (_controller.value * dotCount - index)
-                      .clamp(0.0, 1.0);
-
-                  final scale = 0.4 + (0.6 * progress);
-
-                  return Transform.translate(
-                    offset: Offset(
-                      cos(angle) * (widget.size / 2.3),
-                      sin(angle) * (widget.size / 2.3),
-                    ),
-                    child: Transform.scale(
-                      scale: scale,
-                      child: Container(
-                        width: widget.size / 10,
-                        height: widget.size / 10,
-                        decoration: BoxDecoration(
-                          color: widget.color.withOpacity(progress),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              );
-            },
-          ),
+    return Shimmer(
+      gradient: LinearGradient(
+        colors: [
+          Colors.grey[300]!,
+          Colors.grey[100]!,
+          Colors.grey[300]!,
         ],
+        stops: const [0.1, 0.3, 0.4],
+        begin: const Alignment(-1.0, -0.3),
+        end: const Alignment(1.0, 0.3),
+      ),
+      child: ShimmerLoading(
+        isLoading: true,
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Simulate a Header/Summary Card
+              const SkeletonElement(
+                height: 120,
+                width: double.infinity,
+                borderRadius: 12,
+              ),
+              const SizedBox(height: 20),
+
+              // Search Bar Skeleton
+              const SkeletonElement(
+                height: 50,
+                width: double.infinity,
+                borderRadius: 10,
+              ),
+              const SizedBox(height: 20),
+
+              // Table Header Skeleton
+              SkeletonElement(
+                height: 40,
+                width: double.infinity,
+                color: color.withOpacity(0.1),
+                borderRadius: 4,
+              ),
+              const SizedBox(height: 10),
+
+              // Simulate multiple list rows
+              for (int i = 0; i < 5; i++) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      SkeletonElement(height: 20, width: 40),
+                      SizedBox(width: 10),
+                      SkeletonElement(height: 20, width: 60),
+                      SizedBox(width: 10),
+                      Expanded(child: SkeletonElement(height: 20)),
+                    ],
+                  ),
+                ),
+                Divider(color: Colors.grey[200]),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

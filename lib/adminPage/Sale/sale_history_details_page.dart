@@ -27,8 +27,23 @@ class _SaleHistoryListPageState extends State<SaleHistoryListPage> {
 
   /// LOAD API DATA
   void loadData() async {
-
     final data = await SaleHistoryService.fetchSaleHistory();
+
+    // Sort logic: Primary - Date (Newest first), Secondary - School Name (A-Z)
+    data.sort((a, b) {
+      DateTime? dateA = a.dates != null ? DateTime.tryParse(a.dates!) : null;
+      DateTime? dateB = b.dates != null ? DateTime.tryParse(b.dates!) : null;
+
+      if (dateA != null && dateB != null) {
+        int dateCompare = dateB.compareTo(dateA); // Today first
+        if (dateCompare != 0) return dateCompare;
+      } else if (dateA != null) {
+        return -1;
+      } else if (dateB != null) {
+        return 1;
+      }
+      return a.schoolName.toLowerCase().compareTo(b.schoolName.toLowerCase());
+    });
 
     setState(() {
       allData = data;
@@ -38,7 +53,6 @@ class _SaleHistoryListPageState extends State<SaleHistoryListPage> {
 
   /// SEARCH FILTER
   void filterSearch(String query) {
-
     if (query.isEmpty) {
       setState(() {
         filteredData = allData;
@@ -47,13 +61,11 @@ class _SaleHistoryListPageState extends State<SaleHistoryListPage> {
     }
 
     final results = allData.where((item) {
-
       final party = item.schoolName.toLowerCase();
       final bill = item.billNo.toLowerCase();
       final input = query.toLowerCase();
 
       return party.contains(input) || bill.contains(input);
-
     }).toList();
 
     setState(() {
@@ -62,9 +74,14 @@ class _SaleHistoryListPageState extends State<SaleHistoryListPage> {
   }
 
   /// DATE FORMAT
-  String formatDate(String date) {
-    DateTime dt = DateTime.parse(date);
-    return "${dt.day}-${dt.month}-${dt.year}";
+  String formatDate(String? date) {
+    if (date == null || date.isEmpty) return "-";
+    try {
+      DateTime dt = DateTime.parse(date);
+      return "${dt.day.toString().padLeft(2, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.year}";
+    } catch (e) {
+      return date;
+    }
   }
 
   @override
@@ -130,14 +147,13 @@ class _SaleHistoryListPageState extends State<SaleHistoryListPage> {
 
                 ],
 
-                rows: filteredData.map((item) {
+                rows: filteredData.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  var item = entry.value;
 
                   return DataRow(cells: [
-
-                    DataCell(Text(item.sNo.toString())),
-
+                    DataCell(Text((index + 1).toString())),
                     DataCell(Text(item.billNo)),
-
                     DataCell(
                       SizedBox(
                         width: 220,
@@ -147,36 +163,27 @@ class _SaleHistoryListPageState extends State<SaleHistoryListPage> {
                         ),
                       ),
                     ),
-
                     DataCell(Text(item.totalAmount.toString())),
-
                     DataCell(Text(formatDate(item.dates))),
-
                     DataCell(
-
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                          ),
-
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => SaleHistoryDetailsPage(
-                                  billNo: item.billNo,
-                                ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SaleHistoryDetailsPage(
+                                billNo: item.billNo,
                               ),
-                            );
-                          },
-
-                          child: const Text("Actions"),
-                        )
-
+                            ),
+                          );
+                        },
+                        child: const Text("Actions"),
+                      ),
                     ),
-
                   ]);
-
                 }).toList(),
               ),
             ),

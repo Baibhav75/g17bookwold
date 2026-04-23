@@ -11,12 +11,30 @@ class SalePendingMixOrderModel {
 
   factory SalePendingMixOrderModel.fromJson(Map<String, dynamic> json) {
     return SalePendingMixOrderModel(
-      schoolName: json['SchoolName'] ?? '',
-      data: (json['Data'] as List)
+      schoolName: json['SchoolName']?.toString() ?? '',
+      data: (json['Data'] as List? ?? [])
           .map((e) => SalePendingItem.fromJson(e))
           .toList(),
-      summary: Summary.fromJson(json['Summary']),
+      summary: json['Summary'] != null 
+          ? Summary.fromJson(json['Summary']) 
+          : Summary(totalOrder: 0, totalSale: 0, totalRate: 0, totalPending: 0),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 }
 
@@ -41,13 +59,13 @@ class SalePendingItem {
 
   factory SalePendingItem.fromJson(Map<String, dynamic> json) {
     return SalePendingItem(
-      publication: json['Publication'] ?? '',
-      series: json['Series'] ?? '',
-      bookName: json['BookName'] ?? '',
-      totalOrder: json['TotalOrder'] ?? 0,
-      sale: json['Sale'] ?? 0,
-      pending: json['Pending'] ?? '',
-      rate: (json['Rate'] ?? 0).toDouble(),
+      publication: json['Publication']?.toString() ?? '',
+      series: json['Series']?.toString() ?? '',
+      bookName: json['BookName']?.toString() ?? '',
+      totalOrder: SalePendingMixOrderModel._parseInt(json['TotalOrder']),
+      sale: SalePendingMixOrderModel._parseInt(json['Sale']),
+      pending: json['Pending']?.toString() ?? '',
+      rate: SalePendingMixOrderModel._parseDouble(json['Rate']),
     );
   }
 }
@@ -67,10 +85,10 @@ class Summary {
 
   factory Summary.fromJson(Map<String, dynamic> json) {
     return Summary(
-      totalOrder: json['TotalOrder'] ?? 0,
-      totalSale: json['TotalSale'] ?? 0,
-      totalRate: (json['TotalRate'] ?? 0).toDouble(),
-      totalPending: json['TotalPending'] ?? 0,
+      totalOrder: SalePendingMixOrderModel._parseInt(json['TotalOrder']),
+      totalSale: SalePendingMixOrderModel._parseInt(json['TotalSale']),
+      totalRate: SalePendingMixOrderModel._parseDouble(json['TotalRate']),
+      totalPending: SalePendingMixOrderModel._parseInt(json['TotalPending']),
     );
   }
 }

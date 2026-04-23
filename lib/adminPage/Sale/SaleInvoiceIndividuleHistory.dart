@@ -12,25 +12,22 @@ import 'SaleMixReportCompanyPScreen.dart';
 import 'SaleMixReportOrderPendingScreen.dart';
 import 'SaleMixReportScreen.dart';
 
-class SaleInvoiceClubHistoryScreen extends StatefulWidget {
-  const SaleInvoiceClubHistoryScreen({super.key});
-//history file
+class  SaleInvoiceIndividuleScreen extends StatefulWidget {
+  const  SaleInvoiceIndividuleScreen({super.key});
+
   @override
-  State<SaleInvoiceClubHistoryScreen> createState() =>
-      _SaleInvoiceClubHistoryScreenState();
+  State< SaleInvoiceIndividuleScreen> createState() =>
+      _SaleInvoiceIndividuleScreenState();
 }
 
-class _SaleInvoiceClubHistoryScreenState
-    extends State<SaleInvoiceClubHistoryScreen> {
+class _SaleInvoiceIndividuleScreenState
+    extends State< SaleInvoiceIndividuleScreen> {
 
   List<SaleInvoiceHistoryItem> list = [];
   List<SaleInvoiceHistoryItem> filteredList = [];
 
-  bool isClubView = true;
   bool isLoading = true;
   double grandTotal = 0;
-  double totalReturn = 0;
-  double netSale = 0;
   int totalBills = 0;
 
   @override
@@ -43,29 +40,44 @@ class _SaleInvoiceClubHistoryScreenState
     final res = await SaleInvoiceHistoryService.fetchList();
 
     if (res != null) {
-      List<SaleInvoiceHistoryItem> rawData = res.data;
+      List<SaleInvoiceHistoryItem> sortedData = res.data;
 
-      // Sort raw data by date (newest first) so getClubList picks the latest date
-      rawData.sort((a, b) {
+      // Sort logic: Primary - Date (Newest first), Secondary - School Name (A-Z)
+      sortedData.sort((a, b) {
         DateTime? dateA = a.date != null ? DateTime.tryParse(a.date!) : null;
         DateTime? dateB = b.date != null ? DateTime.tryParse(b.date!) : null;
-        if (dateA != null && dateB != null) return dateB.compareTo(dateA);
-        if (dateA != null) return -1;
-        if (dateB != null) return 1;
-        return 0;
+
+        // 🔥 1. TODAY FIRST
+        DateTime today = DateTime.now();
+
+        bool isTodayA = dateA != null &&
+            dateA.year == today.year &&
+            dateA.month == today.month &&
+            dateA.day == today.day;
+
+        bool isTodayB = dateB != null &&
+            dateB.year == today.year &&
+            dateB.month == today.month &&
+            dateB.day == today.day;
+
+        if (isTodayA && !isTodayB) return -1;
+        if (!isTodayA && isTodayB) return 1;
+
+        // 🔥 2. DATE DESC (Newest first)
+        if (dateA != null && dateB != null) {
+          int dateCompare = dateB.compareTo(dateA);
+          if (dateCompare != 0) return dateCompare;
+        }
+
+        // 🔥 3. ALPHABETICAL (A-Z)
+        return a.schoolName.toLowerCase().compareTo(b.schoolName.toLowerCase());
       });
 
       setState(() {
-        list = rawData;
-
-        /// 🔥 FIRST LOAD → CLUB VIEW
-        filteredList = getClubList();
-
+        list = sortedData;
+        filteredList = list;
         grandTotal = res.grandTotal;
         totalBills = res.totalBills;
-        totalReturn = res.totalReturn;
-        netSale = res.netSale;
-
         isLoading = false;
       });
     } else {
@@ -74,49 +86,32 @@ class _SaleInvoiceClubHistoryScreenState
   }
 
   void search(String value) {
-    List<SaleInvoiceHistoryItem> baseList = getClubList();
-
     setState(() {
-      filteredList = baseList.where((item) {
+      filteredList = list.where((item) {
         return item.billNo.toLowerCase().contains(value.toLowerCase()) ||
             item.schoolName.toLowerCase().contains(value.toLowerCase());
       }).toList();
     });
   }
-  List<SaleInvoiceHistoryItem> getClubList() {
-    Map<String, SaleInvoiceHistoryItem> map = {};
 
-    for (var item in list) {
-      if (map.containsKey(item.schoolId)) {
-        final existing = map[item.schoolId]!;
+  void filterToday() {
+    DateTime today = DateTime.now();
 
-        map[item.schoolId] = SaleInvoiceHistoryItem(
-          sNo: existing.sNo,
-          billNo: "Multiple",
-          schoolName: existing.schoolName,
-          schoolId: existing.schoolId,
-          date: existing.date,
-          totalAmount: existing.totalAmount + item.totalAmount,
-        );
-      } else {
-        map[item.schoolId] = SaleInvoiceHistoryItem(
-          sNo: item.sNo,
-          billNo: item.billNo,
-          schoolName: item.schoolName,
-          schoolId: item.schoolId,
-          date: item.date,
-          totalAmount: item.totalAmount,
-        );
-      }
-    }
+    setState(() {
+      filteredList = list.where((item) {
+        if (item.date == null) return false;
 
-    List<SaleInvoiceHistoryItem> clubbedList = map.values.toList();
-    
-    // Sort clubbed list by School Name (Alphabetical)
-    clubbedList.sort((a, b) => a.schoolName.toLowerCase().compareTo(b.schoolName.toLowerCase()));
+        DateTime? d = DateTime.tryParse(item.date!);
+        if (d == null) return false;
 
-    return clubbedList;
+        return d.year == today.year &&
+            d.month == today.month &&
+            d.day == today.day;
+      }).toList();
+    });
   }
+
+
 
   String formatDate(String? rawDate) {
     if (rawDate == null || rawDate.isEmpty) return "-";
@@ -124,10 +119,10 @@ class _SaleInvoiceClubHistoryScreenState
       DateTime dt = DateTime.parse(rawDate);
       return "${dt.day.toString().padLeft(2, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.year}";
     } catch (e) {
+      // If parsing fails (e.g. format is already DD-MM-YYYY), return raw or attempt simple split
       return rawDate;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +131,7 @@ class _SaleInvoiceClubHistoryScreenState
         backgroundColor: const Color(0xFF6B46C1),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          "Sale Club View History ",
+          "Sale Invoice Individual History",
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -160,16 +155,14 @@ class _SaleInvoiceClubHistoryScreenState
         ],
       ),
 
-        body: Stack(
-            children: [
+      body: isLoading
+          ? const  SchoolLoader ()
 
-        /// 🔶 MAIN UI (ALWAYS RENDER)
-        Column(
+          : Column(
         children: [
           // 🔥 SUMMARY CARD (TOP)
           Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.all(15),
+            margin: const EdgeInsets.all(10),
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -177,34 +170,64 @@ class _SaleInvoiceClubHistoryScreenState
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child:Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.spaceBetween,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
 
-                summaryItem("Total Bills", "$totalBills"),
-                summaryItem("Grand Total", "₹ ${grandTotal.toStringAsFixed(2)}"),
-                summaryItem("Total Return", "₹ ${totalReturn.toStringAsFixed(2)}"),
-                summaryItem("Net Sale", "₹ ${netSale.toStringAsFixed(2)}"),
+                /// TOTAL BILLS
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Total Bills",
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "$totalBills",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
 
+                /// GRAND TOTAL
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      "Grand Total",
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "₹ ${grandTotal.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ],
-            )
+            ),
           ),
 
+          /// 🔍 SEARCH
           Padding(
             padding: const EdgeInsets.all(10),
             child: Row(
               children: [
-
-                /// 🔍 SEARCH FIELD
                 Expanded(
-                  flex: 3,
                   child: TextField(
                     onChanged: search,
                     decoration: InputDecoration(
                       hintText: "Search Bill No / School",
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -212,20 +235,23 @@ class _SaleInvoiceClubHistoryScreenState
                   ),
                 ),
 
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
 
-                /// 🔁 TOGGLE BUTTON
-
+                ElevatedButton(
+                  onPressed: filterToday,
+                  child: Text("Today"),
+                ),
               ],
             ),
           ),
+
 
           /// 🔥 TABLE
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(
-                width: 680,
+                width: 900,
                 child: Column(
                   children: [
 
@@ -234,13 +260,15 @@ class _SaleInvoiceClubHistoryScreenState
                       color: Colors.deepPurple.shade100,
                       padding: const EdgeInsets.all(10),
                       child: Row(
-                        children: [
-                          SizedBox(width: 60, child: Text("Sr No")),
-                          SizedBox(width: 260, child: Text("School")),
-                          SizedBox(width: 160, child: Text("Amount")),
-                          SizedBox(width: 80, child: Text("View")),
+                        children: const [
+                          SizedBox(width: 60, child: Text("Sr No", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 80, child: Text("Bill No", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 260, child: Text("School", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 140, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 160, child: Text("Amount", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 80, child: Text("View", style: TextStyle(fontWeight: FontWeight.bold))),
                         ],
-                      )
+                      ),
                     ),
 
                     /// LIST
@@ -251,24 +279,29 @@ class _SaleInvoiceClubHistoryScreenState
                           final item = filteredList[index];
 
                           return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => SaleViewMRPLedgerScreen(
-                                    schoolId: item.schoolId,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => SaleDetailsMrpScreen(
+                                      billNo: item.billNo,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
                               child: Container(
                                 padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                ),
                                 child: Row(
                                   children: [
                                     SizedBox(width: 60, child: Text("${index + 1}")),
-                                    if (!isClubView) SizedBox(width: 80, child: Text(item.billNo)),
+                                    SizedBox(width: 80, child: Text(item.billNo)),
                                     SizedBox(width: 260, child: Text(item.schoolName)),
-                                    if (!isClubView) SizedBox(width: 140, child: Text(formatDate(item.date))),
+                                    SizedBox(width: 140, child: Text(formatDate(item.date))),
                                     SizedBox(
                                       width: 160,
                                       child: Text("₹ ${item.totalAmount.toStringAsFixed(2)}"),
@@ -371,6 +404,8 @@ class _SaleInvoiceClubHistoryScreenState
                                           print("Discount Ledger");
                                           break;
 
+
+
                                       }
                                     },
 
@@ -452,7 +487,6 @@ class _SaleInvoiceClubHistoryScreenState
                             ),
                               ),
                           );
-
                         },
                       ),
                     ),
@@ -465,45 +499,6 @@ class _SaleInvoiceClubHistoryScreenState
 
         ],
       ),
-
-              /// 🔥 LOADER (CORRECT PLACE)
-              if (isLoading)
-                Container(
-                  color: Colors.black.withOpacity(0.2),
-                  child: const Center(
-                    child: SchoolLoader(
-                      size: 70,
-                      color: Colors.deepPurple,
-                    ),
-                  ),
-                ),
-            ],
-        ),
-
-    );
-  }
-
-  Widget summaryItem(String title, String value) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center, // 👈 height same feel
-      crossAxisAlignment: CrossAxisAlignment.center, // 👈 center align
-      children: [
-        Text(
-          title,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 5),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }

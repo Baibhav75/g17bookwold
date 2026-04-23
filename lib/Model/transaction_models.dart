@@ -1,4 +1,3 @@
-// models/transaction_models.dart
 
 class TransactionResponse {
   final List<DayBookData> data;
@@ -52,21 +51,31 @@ class DayBookData {
     return DayBookData(
       date: json['Date']?.toString() ?? '',
       transactions: transactions,
-      totalDebit: _parseDouble(json['TotalDebit']),
-      totalCredit: _parseDouble(json['TotalCredit']),
-      finalBalance: _parseDouble(json['FinalBalance']),
-      totalOpening: _parseDouble(json['TotalOpening']),
-      openingBalance: _parseDouble(json['OpeningBalance']),
-      todayOpeningBalance: _parseDouble(json['TodayOpeningBalance']),
-      nextDayFinalBalance: _parseDouble(json['NextDayFinalBalance']),
+      totalDebit: _parseDouble(json['TotalDebit'] ?? json['Totaldebit']),
+      totalCredit: _parseDouble(json['TotalCredit'] ?? json['Totalcredit']),
+      finalBalance: _parseDouble(json['FinalBalance'] ?? json['Finalbalance']),
+      totalOpening: _parseDouble(json['TotalOpening'] ?? json['Totalopening']),
+      openingBalance: _parseDouble(json['OpeningBalance'] ?? json['Openingbalance']),
+      todayOpeningBalance: _parseDouble(json['TodayOpeningBalance'] ?? json['Todayopeningbalance']),
+      nextDayFinalBalance: _parseDouble(json['NextDayFinalBalance'] ?? json['Nextdayfinalbalance']),
     );
   }
 
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
+
     if (value is double) return value;
     if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
+
+    if (value is String) {
+      final cleaned = value
+          .replaceAll('₹', '')
+          .replaceAll(',', '')
+          .trim();
+
+      return double.tryParse(cleaned) ?? 0.0;
+    }
+
     return 0.0;
   }
 }
@@ -76,7 +85,7 @@ class Transaction {
   final String particularName;
   final String flag;
   final double amount;
-  final double? totalBalance;
+  double? totalBalance;
   final String createdDateTime;
   final double? openingBalance;
   final String? expenseBowcherNo;
@@ -107,10 +116,10 @@ class Transaction {
       id: (json['id'] as num?)?.toInt() ?? 0,
       particularName: json['ParicularName']?.toString() ?? 'N/A',
       flag: json['Flag']?.toString() ?? '',
-      amount: DayBookData._parseDouble(json['Amount']),
-      totalBalance: DayBookData._parseDouble(json['TotalBalance']),
-      createdDateTime: json['Createdatetime']?.toString() ?? '',
-      openingBalance: DayBookData._parseDouble(json['OpeningBalance']),
+      amount: DayBookData._parseDouble(json['Amount'] ?? json['amount']),
+      totalBalance: DayBookData._parseDouble(json['TotalBalance'] ?? json['Totalbalance'] ?? json['Total_Balance']),
+      createdDateTime: (json['Createdatetime'] ?? json['CreatedDateTime'] ?? json['created_at'])?.toString() ?? '',
+      openingBalance: DayBookData._parseDouble(json['OpeningBalance'] ?? json['Openingbalance']),
       expenseBowcherNo: json['ExpenceBowcherNo']?.toString(),
       receiptBowcherNo: json['ReceiptBowcherNo']?.toString(),
       remark: json['Remark']?.toString(),

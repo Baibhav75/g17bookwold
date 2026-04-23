@@ -3,6 +3,7 @@ import 'ForgotPasswordPage.dart';
 import 'admin_page.dart';
 import 'package:bookworld/Service/admin_login_service.dart';
 import 'package:bookworld/Service/secure_storage_service.dart';
+import 'package:bookworld/adminPage/mpin_screen.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({Key? key}) : super(key: key);
@@ -25,7 +26,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   // Constants
   static const int _minPasswordLength = 3;
   static const int _mobileNumberLength = 10;
-  static const double _headerIconSize = 80.0;
   static const double _formPadding = 24.0;
   
   // Color getters for consistency
@@ -355,33 +355,4 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     );
   }
 
-
-
-
-
-  Widget _buildInstructionItem(String instruction) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.arrow_right_rounded,
-            color: Colors.blue[700],
-            size: 20,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              instruction,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

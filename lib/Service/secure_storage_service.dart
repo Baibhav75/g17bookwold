@@ -12,6 +12,7 @@ import 'package:bookworld/counterPage/counter_main_page.dart';
 import 'package:bookworld/home_screen.dart';
 import 'package:bookworld/AgentStaff/agentStaffPage.dart';
 import 'package:bookworld/Recovery/RecoveryHomepage.dart';
+import 'package:bookworld/adminPage/mpin_screen.dart';
 
 /// Service for securely storing and retrieving user credentials
 /// Also handles authentication and auto-login functionality
@@ -36,6 +37,7 @@ class SecureStorageService {
   static const String _keyAdminPassword = 'admin_password';
   static const String _keyAdminName = 'admin_name';
   static const String _keyAdminEmail = 'admin_email';
+  static const String _keyAdminMpin = 'admin_mpin';
 
   // Staff keys
   static const String _keyStaffUsername = 'staff_username';
@@ -118,6 +120,15 @@ class SecureStorageService {
       }
     } catch (e) {
       throw Exception('Failed to save admin credentials: $e');
+    }
+  }
+
+  /// Save admin MPIN
+  Future<void> saveAdminMpin(String mpin) async {
+    try {
+      await _storage.write(key: _keyAdminMpin, value: mpin);
+    } catch (e) {
+      throw Exception('Failed to save admin MPIN: $e');
     }
   }
 
@@ -349,6 +360,15 @@ class SecureStorageService {
       };
     } catch (e) {
       throw Exception('Failed to get admin credentials: $e');
+    }
+  }
+
+  /// Get admin MPIN
+  Future<String?> getAdminMpin() async {
+    try {
+      return await _storage.read(key: _keyAdminMpin);
+    } catch (e) {
+      return null;
     }
   }
 
@@ -859,6 +879,7 @@ class SecureStorageService {
       await _storage.delete(key: _keyAdminPassword);
       await _storage.delete(key: _keyAdminName);
       await _storage.delete(key: _keyAdminEmail);
+      await _storage.delete(key: _keyAdminMpin);
 
       // Clear staff credentials
       await _storage.delete(key: _keyStaffUsername);
@@ -979,7 +1000,7 @@ class SecureStorageService {
       );
 
       if (loginResponse.isSuccess) {
-        return AdminPage(userData: loginResponse);
+        return MpinScreen(userData: loginResponse);
       } else {
         await clearAllCredentials();
         return const HomeScreen();

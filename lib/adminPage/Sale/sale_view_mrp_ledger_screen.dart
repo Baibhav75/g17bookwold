@@ -83,6 +83,12 @@ class _SaleViewMRPLedgerScreenState
           }
 
           final data = snapshot.data!;
+          /// ✅ YAHI ADD KARO (IMPORTANT)
+          final debitCount =
+              data.ledger.where((e) => e.debit > 0).length;
+
+          final creditCount =
+              data.ledger.where((e) => e.credit > 0).length;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -212,85 +218,93 @@ class _SaleViewMRPLedgerScreenState
                           3: FlexColumnWidth(1),
                           4: FlexColumnWidth(1),
                         },
-                        children: data.ledger.map((e) {
-                          final isOpening = e.particulars.toLowerCase().contains("opening");
-
-                          return TableRow(
-                            decoration: BoxDecoration(
-                              color: isOpening ? Colors.green.shade100 : null, // ✅ GREEN ROW
-                            ),
-                            children: [
-                              cell(formatDate(e.date)),
-
-                              GestureDetector(
-                                onTap: () {
-                                  final billNo = e.particulars.replaceAll(RegExp(r'[^0-9]'), '');
-                                  final formattedDate = formatDate(e.date);
-
-                                  if (e.particulars.toLowerCase().contains("return")) {
-                                    // 🔥 RETURN INVOICE SCREEN
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => SaleReturnMrpInvoiceScreen(
-                                          billNo: billNo,
-                                          date: formattedDate,
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    // 🔥 NORMAL SALE INVOICE SCREEN
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => SaleInvoiceDetailsScreen(
-                                          billNo: billNo,
-                                          date: formattedDate,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: cell(
-                                  e.particulars,
-                                  bold: true,
-                                  color: isOpening
-                                      ? Colors.green.shade900
-                                      : Colors.blue,
-                                ),
-                              ),
-
-                              cell("₹ ${e.debit}"),
-                              cell("₹ ${e.credit}"),
-                              cell("₹ ${e.balance}"),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-
-                      /// 🔥 TOTAL
-                      Table(
-                        border: TableBorder.all(),
                         children: [
-                          TableRow(children: [
-                            cell(""),
-                            cell("Total :", bold: true),
 
-                            cell("₹ ${data.totalDebit}"),
-                            cell("₹ ${data.totalCredit}"),
-                            cell(""),
-                          ]),
-                          TableRow(children: [
-                            cell(""),
-                            cell("Closing Balance :", bold: true),
-                            cell(""),
-                            cell(""),
-                            cell("₹ ${data.closingBalance}", bold: true),
-                          ]),
+                          /// 🔥 DATA ROWS
+                          ...data.ledger.map((e) {
+                            final isOpening =
+                            e.particulars.toLowerCase().contains("opening");
+
+                            return TableRow(
+                              decoration: BoxDecoration(
+                                color: isOpening ? Colors.green.shade100 : null,
+                              ),
+                              children: [
+                                cell(formatDate(e.date)),
+
+                                GestureDetector(
+                                  onTap: () {
+                                    final billNo = e.particulars
+                                        .replaceAll(RegExp(r'[^0-9]'), '');
+                                    final formattedDate = formatDate(e.date);
+
+                                    if (e.particulars.toLowerCase().contains("return")) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => SaleReturnMrpInvoiceScreen(
+                                            billNo: billNo,
+                                            date: formattedDate,
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => SaleInvoiceDetailsScreen(
+                                            billNo: billNo,
+                                            date: formattedDate,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: cell(
+                                    e.particulars,
+                                    bold: true,
+                                    color: isOpening
+                                        ? Colors.green.shade900
+                                        : Colors.blue,
+                                  ),
+                                ),
+
+                                cell("₹ ${e.debit}"),
+                                cell("₹ ${e.credit}"),
+                                cell("₹ ${e.balance}"),
+                              ],
+                            );
+                          }).toList(),
+
+
+                          /// 🔥 TOTAL ROW (Same Line Alignment)
+                          TableRow(
+                            decoration: const BoxDecoration(color: Colors.black12),
+                            children: [
+                              cell(""),
+                              cell("Total :", bold: true),
+
+                              cell("₹ ${data.totalDebit}\n($debitCount)"),
+                              cell("₹ ${data.totalCredit}\n($creditCount)"),
+                              cell(""),
+                            ],
+                          ),
+
+                          /// 🔥 CLOSING BALANCE
+                          TableRow(
+                            children: [
+                              cell(""),
+                              cell("Closing Balance :", bold: true),
+                              cell(""),
+                              cell(""),
+                              cell("₹ ${data.closingBalance}", bold: true),
+                            ],
+                          ),
                         ],
                       ),
 
-                      const SizedBox(height: 30),
+
+                       SizedBox(height: 30),
 
                       /// FOOTER
                       Row(

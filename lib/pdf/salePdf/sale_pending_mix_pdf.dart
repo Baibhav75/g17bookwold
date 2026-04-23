@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
-import '/Model/sale_pending_mix_order_model.dart';
+import '../../Model/sale_pending_mix_order_model.dart';
 
 class SalePendingMixPdf {
   static Future<File> generate(SalePendingMixOrderModel data) async {
@@ -18,6 +18,8 @@ class SalePendingMixPdf {
     pdf.addPage(
       pw.MultiPage(
         margin: const pw.EdgeInsets.all(16),
+        maxPages: 100,
+
         build: (context) => [
 
         /// 🔷 HEADER (SAME AS UI)
@@ -211,8 +213,8 @@ class SalePendingMixPdf {
     );
 
     final dir = await getTemporaryDirectory();
-    final file = File(
-        "${dir.path}/pending_mix_${DateTime.now().millisecondsSinceEpoch}.pdf");
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final file = File("${dir.path}/SalePendingMixReport_$timestamp.pdf");
 
     await file.writeAsBytes(await pdf.save());
     return file;

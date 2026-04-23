@@ -1,10 +1,9 @@
-
+// pages/day_book_history.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '/Model/transaction_models.dart';
 import '/Service/transaction_service.dart';
-import 'DayBookHistoryDetails.dart';
 
 class DayBookHistory extends StatefulWidget {
   const DayBookHistory({super.key});
@@ -37,37 +36,21 @@ class _DayBookHistoryState extends State<DayBookHistory> {
   static const double _colRecNoWidth = 100.0;
   static const double _colImgWidth = 60.0;
   static const double _colUserWidth = 100.0;
-  static const double _colActionWidth = 130.0;
+  static const double _colActionWidth = 100.0;
 
   double get _totalTableWidth =>
       _colSrWidth + _colDateWidth + _colMobileWidth + _colParticularWidth +
           (_colAmountWidth * 2) + _colTotalBalWidth + _colRemarksWidth +
-          _colExpNoWidth + _colRecNoWidth + _colImgWidth + _colUserWidth +
-          _colActionWidth; // ✅ ADD THIS
+          _colExpNoWidth + _colRecNoWidth + _colImgWidth + _colUserWidth + _colActionWidth;
   TransactionResponse? _transactionResponse; // Store full response to access DayBookData
   String? _selectedFilter; // null means "All" - no filtering
   DateTimeRange? _currentDateRange; // null means show all records
-
-  // Lazy Loading Configuration
-  int _visibleGroupsLimit = 5; // Initial number of day groups to show
-  static const int _groupsBatchSize = 5; // How many more groups to load on scroll
 
   @override
   void initState() {
     super.initState();
     _initializeData();
     _searchController.addListener(_filterTransactions);
-    _verticalScrollController.addListener(_onVerticalScroll);
-  }
-
-  void _onVerticalScroll() {
-    if (_verticalScrollController.offset >= _verticalScrollController.position.maxScrollExtent - 500) {
-      if (_transactionResponse != null && _visibleGroupsLimit < _transactionResponse!.data.length) {
-        setState(() {
-          _visibleGroupsLimit += _groupsBatchSize;
-        });
-      }
-    }
   }
 
   @override
@@ -75,7 +58,6 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     _searchController.removeListener(_filterTransactions);
     _searchController.dispose();
     _horizontalScrollController.dispose();
-    _verticalScrollController.removeListener(_onVerticalScroll);
     _verticalScrollController.dispose();
     _isLoading.dispose();
     _errorMessage.dispose();
@@ -111,7 +93,6 @@ class _DayBookHistoryState extends State<DayBookHistory> {
           _transactionResponse = response; // Store full response for balance access
           _allTransactions = filteredByDate;
           _filteredTransactions = filteredByDate;
-          _visibleGroupsLimit = _groupsBatchSize; // Reset lazy loading limit on new fetch
         });
       }
     } catch (e) {
@@ -131,6 +112,12 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     }
   }
 
+  /// Gets the date range for the specified filter
+  ///
+  /// - Today: Only today's date
+  /// - Weekly: Current week (Monday to Sunday)
+  /// - Monthly: Current month only (from start of month to today)
+  /// Returns null for "All" to show all records
   DateTimeRange? _getDateRangeForFilter(String? filter) {
     if (filter == null) return null; // Show all records
 
@@ -184,7 +171,8 @@ class _DayBookHistoryState extends State<DayBookHistory> {
       try {
         final transactionDate = DateTime.parse(transaction.createdDateTime);
 
-
+        // Check if transaction date falls within the range (inclusive on both ends)
+        // rangeStart <= transactionDate <= rangeEnd
         return !transactionDate.isBefore(rangeStart) &&
             !transactionDate.isAfter(rangeEnd);
       } catch (e) {
@@ -193,6 +181,9 @@ class _DayBookHistoryState extends State<DayBookHistory> {
       }
     }).toList();
   }
+
+  /// Filters transactions based on search query
+  /// Searches across: mobile number, particular name, remarks, voucher numbers, and transaction flag
   void _filterTransactions() {
     final query = _searchController.text.toLowerCase().trim();
 
@@ -241,6 +232,7 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     _loadTransactions(forceRefresh: true);
   }
 
+  /// Calculates total debit and credit amounts from a list of transactions
   ({double debit, double credit}) _calculateTotals(
       List<Transaction> transactions,
       ) {
@@ -258,6 +250,10 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     return (debit: totalDebit, credit: totalCredit);
   }
 
+  /// Gets opening balance and next day final balance from DayBookData
+  /// For "Today" filter: returns today's balances
+  /// For other filters: returns the most recent day's balances
+  /// Returns null if no data available
   ({double todayOpeningBalance, double nextDayFinalBalance})? _getTodayBalances() {
     if (_transactionResponse == null || _transactionResponse!.data.isEmpty) {
       return null;
@@ -277,7 +273,8 @@ class _DayBookHistoryState extends State<DayBookHistory> {
         }
       }
     } else {
-
+      // For other filters or "All", get the most recent day's data
+      // Find the day that matches the current date range or get the latest
       if (_currentDateRange != null) {
         // Find the day within the date range
         for (final dayData in _transactionResponse!.data) {
@@ -296,14 +293,15 @@ class _DayBookHistoryState extends State<DayBookHistory> {
 
     if (targetDayData != null) {
       return (
-        todayOpeningBalance: targetDayData.todayOpeningBalance,
-        nextDayFinalBalance: targetDayData.nextDayFinalBalance,
+      todayOpeningBalance: targetDayData.todayOpeningBalance,
+      nextDayFinalBalance: targetDayData.nextDayFinalBalance,
       );
     }
 
     return null;
   }
 
+  /// Helper to check if a date string matches a specific date
   bool _isSameDay(String dateString, DateTime date) {
     try {
       // Try parsing the date string
@@ -359,8 +357,23 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     }
   }
 
+  String _formatShortDate(String dateTimeString) {
+    try {
+      final DateTime dateTime = DateTime.parse(dateTimeString);
+      return DateFormat('dd/MMM').format(dateTime);
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
 
-
+  String _formatTime(String dateTimeString) {
+    try {
+      final DateTime dateTime = DateTime.parse(dateTimeString);
+      return DateFormat('HH:mm').format(dateTime);
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
 
   String _formatLongDate(String dateString) {
     try {
@@ -377,11 +390,29 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     }
   }
 
+  void _handleViewDetails(Transaction transaction) {
+    showDialog(
+      context: context,
+      builder: (context) => TransactionDetailDialog(transaction: transaction),
+    );
+  }
+
+  void _handleViewImage(Transaction transaction) {
+    if (transaction.hasImage) {
+      showDialog(
+        context: context,
+        builder: (context) => ImageViewDialog(imageUrl: transaction.imageUrl),
+      );
+    }
+  }
+
   void _handleRefresh() {
     _loadTransactions(forceRefresh: true);
   }
 
-
+  Color _getAmountColor(String flag) {
+    return flag == 'Debit' ? Colors.red[700]! : Colors.green[700]!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -771,37 +802,26 @@ class _DayBookHistoryState extends State<DayBookHistory> {
   Widget _buildLedgerView() {
     return Column(
       children: [
-        // Table Container that handles horizontal scrolling for both Header and Body
-        Expanded(
-          child: Scrollbar(
-            controller: _horizontalScrollController,
-            thumbVisibility: true,
-            child: SingleChildScrollView(
-              controller: _horizontalScrollController,
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: _totalTableWidth + 2.0, // Account for 1px left + 1px right borders
-                child: Column(
-                  children: [
-                    // Sticky Header (No Action column)
-                    _buildTableHeader(),
+        // Horizontal Header (Fixed at top)
+        SingleChildScrollView(
+          controller: _horizontalScrollController,
+          scrollDirection: Axis.horizontal,
+          child: _buildTableHeader(),
+        ),
 
-                    // Scrollable Body (No Action column)
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () async => _handleRefresh(),
-                        child: Scrollbar(
-                          controller: _verticalScrollController,
-                          child: ListView(
-                            controller: _verticalScrollController,
-                            padding: EdgeInsets.zero,
-                            children: [_buildTableBody()],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+        // Scrollable Table Body
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async => _handleRefresh(),
+            child: SingleChildScrollView(
+              controller: _verticalScrollController,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                // Synced with header manually or by sharing the same controller if needed
+                // But header logic usually needs to stay in sync.
+                // We'll use the same ScrollController for both horizontal scrolls.
+                controller: _horizontalScrollController,
+                child: _buildTableBody(),
               ),
             ),
           ),
@@ -870,12 +890,7 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     List<Widget> rows = [];
     int globalSrNo = 1;
 
-    // Lazy Loader: Only render up to the visible limit
-    final data = _transactionResponse!.data;
-    final displayCount = _visibleGroupsLimit < data.length ? _visibleGroupsLimit : data.length;
-
-    for (int i = 0; i < displayCount; i++) {
-      final dayData = data[i];
+    for (var dayData in _transactionResponse!.data) {
       rows.add(_buildDateGroupRow(dayData));
       for (var tx in dayData.transactions) {
         rows.add(_buildDataRow(globalSrNo++, tx));
@@ -883,32 +898,20 @@ class _DayBookHistoryState extends State<DayBookHistory> {
       rows.add(_buildDaySummaryRows(dayData));
     }
 
-    // Add "Loading more" indicator if there are more groups
-    if (displayCount < data.length) {
-      rows.add(
-        Container(
-          width: _totalTableWidth,
-          padding: const EdgeInsets.all(20),
-          child: const Center(
-            child: SizedBox(
-              width: 24, height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Column(children: rows);
   }
 
   Widget _buildDateGroupRow(DayBookData dayData) {
     return Container(
-      width: _totalTableWidth + 2.0,
+      width: _totalTableWidth,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFFE3F2FD), // Subtle blue
-        border: Border.all(color: Colors.grey[400]!),
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[400]!),
+          left: BorderSide(color: Colors.grey[400]!),
+          right: BorderSide(color: Colors.grey[400]!),
+        ),
       ),
       child: Row(
         children: [
@@ -949,19 +952,18 @@ class _DayBookHistoryState extends State<DayBookHistory> {
       ),
       child: Row(
         children: [
-          _buildCell('$srNo', _colSrWidth, align: TextAlign.center),
-          _buildCell(_formatLongDate(tx.createdDateTime), _colDateWidth, align: TextAlign.center),
-          _buildCell(tx.mobileNo ?? '-', _colMobileWidth, align: TextAlign.center, textColor: Colors.blue[800]),
-          _buildCell(tx.particularName, _colParticularWidth),
-          _buildCell(tx.debit != null && tx.debit! > 0 ? _formatCurrency(tx.debit!) : '', _colAmountWidth, align: TextAlign.right, textColor: Colors.red[700], isBold: true),
-          _buildCell(tx.credit != null && tx.credit! > 0 ? _formatCurrency(tx.credit!) : '', _colAmountWidth, align: TextAlign.right, textColor: Colors.green[700], isBold: true),
-          _buildCell(_formatCurrency(tx.totalBalance ?? 0), _colTotalBalWidth, align: TextAlign.right, isBold: true),
-          _buildCell(tx.remarks ?? tx.remark ?? '-', _colRemarksWidth),
-          _buildCell(tx.expenseBowcherNo ?? 'NO', _colExpNoWidth, align: TextAlign.center),
-          _buildCell(tx.receiptBowcherNo ?? 'NO', _colRecNoWidth, align: TextAlign.center),
+          _buildDataCell('$srNo', _colSrWidth, textAlign: TextAlign.center),
+          _buildDataCell(_formatShortDate(tx.createdDateTime), _colDateWidth, textAlign: TextAlign.center),
+          _buildDataCell(tx.mobileNo ?? '-', _colMobileWidth, textAlign: TextAlign.center, textColor: Colors.blue[800]),
+          _buildParticularCell(tx),
+          _buildAmountCell(tx.debit, _colAmountWidth, Colors.red[700]!),
+          _buildAmountCell(tx.credit, _colAmountWidth, Colors.green[700]!),
+          _buildDataCell(_formatCurrency(tx.totalBalance ?? 0), _colTotalBalWidth, textAlign: TextAlign.right, isBold: true),
+          _buildRemarksCell(tx),
+          _buildDataCell(tx.expenseBowcherNo ?? 'NO', _colExpNoWidth, textAlign: TextAlign.center),
+          _buildDataCell(tx.receiptBowcherNo ?? 'NO', _colRecNoWidth, textAlign: TextAlign.center),
           _buildImageCell(tx),
-          _buildCell('Admin', _colUserWidth, align: TextAlign.center),
-          /// ✅ ACTION BUTTON
+          _buildDataCell('Admin', _colUserWidth, textAlign: TextAlign.center),
           _buildActionCell(tx),
         ],
       ),
@@ -969,58 +971,164 @@ class _DayBookHistoryState extends State<DayBookHistory> {
   }
 
   Widget _buildDaySummaryRows(DayBookData dayData) {
-    final spacerWidth = _colSrWidth + _colDateWidth + _colMobileWidth + _colParticularWidth;
-    final totalRowSuffixWidth = _totalTableWidth - (spacerWidth + _colAmountWidth * 2);
-    final finalBalSpacerWidth = spacerWidth + _colAmountWidth * 2;
-    final finalBalSuffixWidth = _totalTableWidth - (finalBalSpacerWidth + _colTotalBalWidth);
-
     return Column(
       children: [
-        _buildSummaryRow('Total (for ${_formatLongDate(dayData.date)})', spacerWidth, [
-          _buildCell(_formatCurrency(dayData.totalDebit), _colAmountWidth, align: TextAlign.right, isBold: true),
-          _buildCell(_formatCurrency(dayData.totalCredit), _colAmountWidth, align: TextAlign.right, isBold: true),
-          Container(width: totalRowSuffixWidth),
-        ], color: Colors.grey[200]),
-        _buildSummaryRow('Final Balance (Carry Forward to Next Day)', finalBalSpacerWidth, [
-          _buildCell(_formatCurrency(dayData.nextDayFinalBalance), _colTotalBalWidth, align: TextAlign.right, isBold: true),
-          Container(width: finalBalSuffixWidth),
-        ], color: const Color(0xFFFFF9C4)),
+        // Total row
+        Container(
+          width: _totalTableWidth,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            border: Border(
+              bottom: BorderSide(color: Colors.grey[400]!),
+              left: BorderSide(color: Colors.grey[400]!),
+              right: BorderSide(color: Colors.grey[400]!),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: _colSrWidth + _colDateWidth + _colMobileWidth + _colParticularWidth,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Total (for ${_formatLongDate(dayData.date)})',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+              _buildDataCell(_formatCurrency(dayData.totalDebit), _colAmountWidth, textAlign: TextAlign.right, isBold: true),
+              _buildDataCell(_formatCurrency(dayData.totalCredit), _colAmountWidth, textAlign: TextAlign.right, isBold: true),
+              Container(width: _totalTableWidth - (_colSrWidth + _colDateWidth + _colMobileWidth + _colParticularWidth + _colAmountWidth * 2)),
+            ],
+          ),
+        ),
+        // Final Balance row
+        Container(
+          width: _totalTableWidth,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF9C4), // Light orange/yellow
+            border: Border(
+              bottom: BorderSide(color: Colors.grey[400]!),
+              left: BorderSide(color: Colors.grey[400]!),
+              right: BorderSide(color: Colors.grey[400]!),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: _colSrWidth + _colDateWidth + _colMobileWidth + _colParticularWidth + _colAmountWidth * 2,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                alignment: Alignment.centerRight,
+                child: const Text(
+                  'Final Balance (Carry Forward to Next Day)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+              _buildDataCell(_formatCurrency(dayData.nextDayFinalBalance), _colTotalBalWidth, textAlign: TextAlign.right, isBold: true),
+              Container(width: _totalTableWidth - (_colSrWidth + _colDateWidth + _colMobileWidth + _colParticularWidth + _colAmountWidth * 2 + _colTotalBalWidth)),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSummaryRow(String label, double labelWidth, List<Widget> suffix, {Color? color}) {
+  Widget _buildDataCell(String text, double width, {TextAlign textAlign = TextAlign.start, bool isBold = false, Color? textColor}) {
     return Container(
-      width: _totalTableWidth + 2.0,
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: color,
-        border: Border.all(color: const Color(0xFFBDBDBD)),
+        border: Border(right: BorderSide(color: Colors.grey[300]!)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          color: textColor ?? Colors.black87,
+        ),
+        textAlign: textAlign,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildParticularCell(Transaction tx) {
+    return Container(
+      width: _colParticularWidth,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: labelWidth,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            alignment: Alignment.centerRight,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Expanded(
+            child: Text(
+              tx.particularName,
+              style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          ...suffix,
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: () => _handleViewDetails(tx),
+            child: const Text(
+              'Show',
+              style: TextStyle(fontSize: 11, color: Colors.blue, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCell(String text, double width, {TextAlign align = TextAlign.start, bool isBold = false, Color? textColor}) {
+  Widget _buildAmountCell(double? amount, double width, Color color) {
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      decoration: BoxDecoration(border: Border(right: BorderSide(color: Colors.grey[300]!))),
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: Colors.grey[300]!)),
+      ),
       child: Text(
-        text,
-        style: TextStyle(fontSize: 12, fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: textColor),
-        textAlign: align,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+        amount != null && amount > 0 ? _formatCurrency(amount) : '',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+        textAlign: TextAlign.right,
+      ),
+    );
+  }
+
+  Widget _buildRemarksCell(Transaction tx) {
+    return Container(
+      width: _colRemarksWidth,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: Colors.grey[300]!)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              tx.remarks ?? tx.remark ?? '-',
+              style: const TextStyle(fontSize: 11),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: () => _handleViewDetails(tx),
+            child: const Text(
+              'Show',
+              style: TextStyle(fontSize: 11, color: Colors.blue),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1029,79 +1137,43 @@ class _DayBookHistoryState extends State<DayBookHistory> {
     return Container(
       width: _colImgWidth,
       alignment: Alignment.center,
-      decoration: BoxDecoration(border: Border(right: BorderSide(color: Colors.grey[300]!))),
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: Colors.grey[300]!)),
+      ),
       child: tx.hasImage
           ? IconButton(
-              icon: const Icon(Icons.image_outlined, size: 20, color: Colors.blue),
-              onPressed: () => _handleViewImage(tx),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            )
+        icon: const Icon(Icons.image_outlined, size: 20, color: Colors.blue),
+        onPressed: () => _handleViewImage(tx),
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+      )
           : const Text('No', style: TextStyle(fontSize: 10, color: Colors.red)),
     );
-  }
-
-  void _handleViewImage(Transaction transaction) {
-    if (transaction.hasImage) {
-      showDialog(
-        context: context,
-        builder: (context) => ImageViewDialog(imageUrl: transaction.imageUrl),
-      );
-    }
   }
 
   Widget _buildActionCell(Transaction tx) {
     return Container(
       width: _colActionWidth,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: Colors.grey[300]!)),
-      ),
-      child: PopupMenuButton<String>(
-        onSelected: (value) {
-          if (value == "view") {
-            _handleView(tx);
-          }
-        },
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: "view",
-            child: Text("View Details"),
-          ),
-        ],
-        child: Container(
+      child: ElevatedButton(
+        onPressed: () => _handleViewDetails(tx),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue[800],
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Text(
-            "View",
-            style: TextStyle(color: Colors.white, fontSize: 12),
-          ),
+          minimumSize: const Size(70, 32),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Actions', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+            Icon(Icons.arrow_drop_down, size: 14),
+          ],
         ),
       ),
     );
   }
-
-  void _handleView(Transaction tx) {
-    if (tx.mobileNo == null || tx.mobileNo!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Mobile number not available")),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DayBookHistoryDetailsScreen(
-          mobileNo: tx.mobileNo!,
-        ),
-      ),
-    );
-  }
-
 }
 
 // Image View Dialog
@@ -1156,5 +1228,292 @@ class ImageViewDialog extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// Transaction Detail Dialog
+class TransactionDetailDialog extends StatelessWidget {
+  final Transaction transaction;
+
+  const TransactionDetailDialog({super.key, required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16), // ✅ mobile safe margin
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxHeight: 650, // ✅ prevents overflow on small phones
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.receipt_long,
+                        color: Colors.blue[900],
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Transaction Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Details Grid
+                _buildDetailGrid(context),
+
+
+                const SizedBox(height: 20),
+
+                // Remarks Section
+                if (transaction.remarks != null &&
+                    transaction.remarks!.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Remarks',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Text(
+                          transaction.remarks!,
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                if (transaction.hasImage) ...[
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Attached Image',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      showDialog(
+                        context: context,
+                        builder: (context) =>
+                            ImageViewDialog(imageUrl: transaction.imageUrl),
+                      );
+                    },
+                    child: Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedNetworkImage(
+                          imageUrl: transaction.imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) =>
+                          const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline, color: Colors.grey),
+                                SizedBox(height: 4),
+                                Text('Failed to load image'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        label: const Text('Close'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (transaction.hasImage)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            showDialog(
+                              context: context,
+                              builder: (context) =>
+                                  ImageViewDialog(imageUrl: transaction.imageUrl),
+                            );
+                          },
+                          icon: const Icon(Icons.image),
+                          label: const Text('View Image'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[900],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildDetailGrid(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 360;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: _detailItems().map((item) {
+            return SizedBox(
+              width: isSmallScreen
+                  ? constraints.maxWidth
+                  : (constraints.maxWidth / 2) - 6,
+              child: _buildDetailItem(item.$1, item.$2),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+
+  List<(String, String)> _detailItems() {
+    return [
+      ('Date', _formatDateTime(transaction.createdDateTime)),
+      ('Mobile', transaction.mobileNo ?? 'N/A'),
+      ('Particular', transaction.particularName),
+      ('Type', transaction.flag),
+      ('Amount', _formatCurrency(transaction.amount)),
+      if (transaction.debit != null)
+        ('Debit', _formatCurrency(transaction.debit!)),
+      if (transaction.credit != null)
+        ('Credit', _formatCurrency(transaction.credit!)),
+      if (transaction.totalBalance != null)
+        ('Balance', _formatCurrency(transaction.totalBalance!)),
+      ('Receipt No.', transaction.receiptBowcherNo ?? 'N/A'),
+      ('Expense No.', transaction.expenseBowcherNo ?? 'N/A'),
+      if (transaction.remark != null && transaction.remark!.isNotEmpty)
+        ('Remark', transaction.remark!),
+    ];
+  }
+
+
+
+  Widget _buildDetailItem(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            softWrap: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+
+  String _formatCurrency(double amount) {
+    return '₹${NumberFormat('#,##0.00').format(amount)}';
+  }
+
+  String _formatDateTime(String dateTimeString) {
+    try {
+      final DateTime dateTime = DateTime.parse(dateTimeString);
+      return DateFormat('dd-MMM-yyyy, HH:mm').format(dateTime);
+    } catch (e) {
+      return dateTimeString;
+    }
   }
 }

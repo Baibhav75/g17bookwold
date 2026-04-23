@@ -11,6 +11,7 @@ import '../AccountSaleHodScreen/sample_sale_billing_screen.dart';
 import '../Sale/SaleInvoice.dart';
 import '../Sale/SampleSaleInvoice.dart';
 import 'EnterysaleScreen.dart';
+import 'SaleInvoiceIndividuleHistory.dart';
 
 class SaleManagementPage extends StatelessWidget {
   const SaleManagementPage({super.key});
@@ -51,12 +52,18 @@ class SaleManagementPage extends StatelessWidget {
               ),
 
               children: [
+                _saleItem(
+                  context,
+                  1,
+                  "Sale Invoice Individual",
+                  const SaleInvoiceIndividuleScreen (),
+                ),
 
                 _saleItem(
                   context,
                   1,
-                  "Sale Invoice",
-                  const SaleInvoiceHistoryScreen (),
+                  "Sale Club View",
+                  const SaleInvoiceClubHistoryScreen (),
                 ),
 
                 _saleItem(
@@ -123,7 +130,6 @@ class SaleManagementPage extends StatelessWidget {
       ),
     );
   }
-
   /// COMMON SALE ITEM
   Widget _saleItem(
       BuildContext context,

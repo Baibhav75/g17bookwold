@@ -37,4 +37,12 @@ class ApiConstants {
   static const String stockRegister =
       "ViewStoctRegister/GetStockRegister";
 
+  // add day Book hstory
+  static const String dayBookDetails =
+      "$baseUrl/Ledger/ViewDetailsGenral";
+ // Sample Bill ladger history invoice
+  static String sampleSaleLedger(String schoolName) {
+    return "$baseUrl/LedgerSaleSample/ViewLedgerSaleSample?schoolname=$schoolName";
+  }
+
 }

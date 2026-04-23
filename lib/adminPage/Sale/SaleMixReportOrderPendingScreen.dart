@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '/Model/sale_pending_mix_order_model.dart';
 import '/service/sale_pending_mix_order_service.dart';
-import 'package:share_plus/share_plus.dart';
-import '/pdf/salePdf/sale_pending_mix_pdf.dart';
+import '/pdf/salePdf/sale_pending_mix_pdfReport.dart';
 
 class SalePendingMixOrderScreen extends StatefulWidget {
   final String schoolId;
@@ -22,14 +21,6 @@ class _SalePendingMixOrderScreenState
   void initState() {
     super.initState();
     future = SalePendingMixOrderService.fetchReport(widget.schoolId);
-  }
-  Future<void> shareReport(SalePendingMixOrderModel data) async {
-    final file = await SalePendingMixPdf.generate(data);
-
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: "Sale Pending Mix Report",
-    );
   }
 
   // ================= COMMON =================
@@ -78,13 +69,17 @@ class _SalePendingMixOrderScreenState
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () async {
-              final data = await future;
-              if (data != null) {
-                await shareReport(data);
-              }
+          FutureBuilder<SalePendingMixOrderModel>(
+            future: future,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox();
+
+              return IconButton(
+                icon: const Icon(Icons.picture_as_pdf),
+                onPressed: () {
+                  SalePendingMixPdfService.generateAndShare(snapshot.data!);
+                },
+              );
             },
           ),
         ],
@@ -99,7 +94,6 @@ class _SalePendingMixOrderScreenState
           final data = snapshot.data!;
           final grouped = groupData(data.data);
 
-          int srNo = 1; // ✅ GLOBAL SR NO
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -110,59 +104,43 @@ class _SalePendingMixOrderScreenState
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   color: Colors.white,
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// 🔹 LEFT SIDE ICON
-                      Column(
-                        children: const [
-                          Icon(Icons.menu_book, size: 45, color: Colors.brown),
-                          SizedBox(height: 5),
-                          Text(
-                            "BOOK WORLD",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      // ================= HEADER =================
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Column(
+                            children: const [
+                              Icon(Icons.menu_book_sharp, size: 45, color: Colors.brown),
+                              Text(
+                                "BOOK WORLD",
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 40),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: const [
+                              Text(
+                                "GJ BOOK WORLD PVT. LTD.",
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2B4C7E)),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "D-1/20, SECTOR 22, GIDA, GORAKHPUR\nCont. - 9354918638, 9354918644\nGST No: 09AAGCG0650B1Z2| CIN No: U22222UP2015PTC068597",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 12, color: Colors.black54),
+                              ),
+                              Text(
+                                "Sale and Order Pending Mix Report",
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2B4C7E)),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-
-                      /// 🔹 CENTER CONTENT
-                      Expanded(
-                        child: Column(
-                          children: const [
-                            Text(
-                              "GJ BOOK WORLD PVT. LTD.",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2B4C7E),
-                              ),
-                            ),
-                            SizedBox(height: 6),
-                            Text(
-                              "D-1/20, SECTOR 22, GIDA, GORAKHPUR\nCont. - 9354918638",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            SizedBox(height: 6),
-
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 40),
-
-                      // ================= HEADER =================
-                      const Center(
-
-
-                        child: Text(
-                          "Sale and Order Pending Mix Report",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
                       ),
                       const SizedBox(height: 5),
                       Center(child: Text(data.schoolName)),

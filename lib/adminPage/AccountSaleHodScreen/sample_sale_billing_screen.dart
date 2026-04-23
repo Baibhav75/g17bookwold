@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '/Model/sample_sale_billing_model.dart';
 import '/Service/sample_sale_billing_service.dart';
 import 'SaleSuperBrandBillDetails.dart';
+import 'SampleSaleBillLedgerInvoice.dart';
 
 class SampleSaleBillingScreen extends StatefulWidget {
   const SampleSaleBillingScreen({super.key});
@@ -158,8 +159,13 @@ class _SampleSaleBillingScreenState extends State<SampleSaleBillingScreen> {
                                           ),
                                         );
                                       } else if (value == "ledger") {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text("Ledger for ${item.billNo}")),
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => SampleSaleBillLedgerInvoice (
+                                              schoolName: item.schoolName,
+                                            ),
+                                          ),
                                         );
                                       }
                                     },
