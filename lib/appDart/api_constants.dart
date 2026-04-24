@@ -44,5 +44,8 @@ class ApiConstants {
   static String sampleSaleLedger(String schoolName) {
     return "$baseUrl/LedgerSaleSample/ViewLedgerSaleSample?schoolname=$schoolName";
   }
+  // new recover Balance
+  static const String newRecoverBalance =
+      "$baseUrl/recovery/GetNewRecoverBalance";
 
 }

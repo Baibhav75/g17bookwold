@@ -3,6 +3,8 @@ import 'package:bookworld/adminPage/CollectionManagement/recovery_pending_screen
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'NewRecoveryBalance.dart';
+
 class CollectionHodScreen extends StatelessWidget {
   const CollectionHodScreen({super.key});
 
@@ -67,6 +69,23 @@ class CollectionHodScreen extends StatelessWidget {
               color: Colors.orange,
               onTap: () {
                 // TODO: Add screen
+              },
+            ),
+
+            _buildGridCard(
+              context,
+              title: "New Recover Balance",
+              icon: Icons.comment_bank_sharp,
+              color: Colors.blueGrey,
+
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NewRecoverBalanceScreen(),
+                  ),
+                );
+
               },
             ),
           ],

@@ -237,10 +237,7 @@ class _SaleInvoiceIndividuleScreenState
 
                 SizedBox(width: 10),
 
-                ElevatedButton(
-                  onPressed: filterToday,
-                  child: Text("Today"),
-                ),
+
               ],
             ),
           ),

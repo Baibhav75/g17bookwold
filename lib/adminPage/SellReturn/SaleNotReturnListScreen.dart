@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import '/Model/sale_sample_return_list_model.dart';
-import '/Service/sale_sample_return_list_service.dart';
+import '/Model/sale_not_return_list_model.dart';
+import '/Service/sale_not_return_list_service.dart';
 
-class SaleSampleReturnListScreen extends StatefulWidget {
-  const SaleSampleReturnListScreen({super.key});
+class SaleNotReturnListScreen extends StatefulWidget {
+  const SaleNotReturnListScreen({super.key});
 
   @override
-  State<SaleSampleReturnListScreen> createState() =>
-      _SaleSampleReturnListScreenState();
+  State<SaleNotReturnListScreen> createState() =>
+      _SaleNotReturnListScreenState();
 }
 
-class _SaleSampleReturnListScreenState
-    extends State<SaleSampleReturnListScreen> {
+class _SaleNotReturnListScreenState
+    extends State<SaleNotReturnListScreen> {
 
-  List<SaleSampleReturnItem> list = [];
-  List<SaleSampleReturnItem> filteredList = [];
+  List<SaleNotReturnItem> list = [];
+  List<SaleNotReturnItem> filteredList = [];
 
   bool isLoading = true;
   double grandTotal = 0;
@@ -26,28 +26,31 @@ class _SaleSampleReturnListScreenState
   }
 
   void loadData() async {
-    final res = await SaleSampleReturnListService.fetchList();
+    final data = await SaleNotReturnListService.fetchList();
 
-    if (res != null) {
-      setState(() {
-        list = res.data;
-        filteredList = list;
-        grandTotal = res.grandTotal;
-        isLoading = false;
-      });
-    } else {
-      setState(() => isLoading = false);
-    }
-  }
-
-  void search(String value) {
     setState(() {
-      filteredList = list.where((item) {
-        return item.billNo.toLowerCase().contains(value.toLowerCase()) ||
-            item.schoolName.toLowerCase().contains(value.toLowerCase());
-      }).toList();
+      list = data;
+      filteredList = data;
+
+      isLoading = false;
     });
   }
+
+  /// 🔍 SEARCH FUNCTION
+  void search(String query) {
+    final result = list.where((item) {
+      return item.billNo.toLowerCase().contains(query.toLowerCase()) ||
+          item.schoolName.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredList = result;
+
+    });
+  }
+
+  /// 💰 TOTAL CALCULATION
+
 
   String formatDate(String rawDate) {
     DateTime dt = DateTime.parse(rawDate);
@@ -56,12 +59,12 @@ class _SaleSampleReturnListScreenState
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sale Sample Return List"),
+        title: const Text("Sample Not For Sale Return List"),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
-        centerTitle: true,
       ),
 
       body: isLoading
@@ -89,7 +92,7 @@ class _SaleSampleReturnListScreenState
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(
-                width: 920,
+                width: 680,
                 child: Column(
                   children: [
 
@@ -103,15 +106,15 @@ class _SaleSampleReturnListScreenState
                           SizedBox(width: 80, child: Text("Bill No", style: TextStyle(fontWeight: FontWeight.bold))),
                           SizedBox(width: 240, child: Text("School", style: TextStyle(fontWeight: FontWeight.bold))),
                           SizedBox(width: 140, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 140, child: Text("Type", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 120, child: Text("Amount", style: TextStyle(fontWeight: FontWeight.bold))),
-                          SizedBox(width: 120, child: Text("View", style: TextStyle(fontWeight: FontWeight.bold))),
+                          SizedBox(width: 140, child: Text("View", style: TextStyle(fontWeight: FontWeight.bold))),
+
                         ],
                       ),
                     ),
 
-                    /// LIST
-                    Expanded(
+                    /// LIST (FIXED - no Expanded)
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
                       child: ListView.builder(
                         itemCount: filteredList.length,
                         itemBuilder: (context, index) {
@@ -136,30 +139,30 @@ class _SaleSampleReturnListScreenState
                                   ),
                                 ),
                                 SizedBox(width: 140, child: Text(formatDate(item.date))),
-                                SizedBox(width: 140, child: Text(item.type ?? "-")),
-                                SizedBox(
-                                  width: 140,
-                                  child: Text("₹ ${item.amount.toStringAsFixed(2)}"),
-                                ),
+
+
+
                                 /// ACTION
                                 SizedBox(
-                                  width: 40,
+                                  width: 60,
                                   child: PopupMenuButton<String>(
                                     onSelected: (value) {
-                                      if (value == "Discount ") {
-
-                                      } else if (value == "MRP Details") {
+                                      if (value == "View Discount Details") {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text("Ledger for ${item.billNo}")),
+                                          SnackBar(content: Text("Discount for ${item.billNo}")),
+                                        );
+                                      } else if (value == "View MRP Details") {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text("MRP for ${item.billNo}")),
                                         );
                                       }
                                     },
-                                    itemBuilder: (context) => [
-                                      const PopupMenuItem(
+                                    itemBuilder: (context) => const [
+                                      PopupMenuItem(
                                         value: "View Discount Details",
-                                        child: Text("View Discount "),
+                                        child: Text("View Discount"),
                                       ),
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: "View MRP Details",
                                         child: Text("MRP Details"),
                                       ),

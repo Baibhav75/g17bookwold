@@ -92,7 +92,7 @@ class _SaleInvoiceClubHistoryScreenState
 
         map[item.schoolId] = SaleInvoiceHistoryItem(
           sNo: existing.sNo,
-          billNo: "Multiple",
+          billNo: existing.billNo,
           schoolName: existing.schoolName,
           schoolId: existing.schoolId,
           date: existing.date,
@@ -111,9 +111,10 @@ class _SaleInvoiceClubHistoryScreenState
     }
 
     List<SaleInvoiceHistoryItem> clubbedList = map.values.toList();
-    
-    // Sort clubbed list by School Name (Alphabetical)
-    clubbedList.sort((a, b) => a.schoolName.toLowerCase().compareTo(b.schoolName.toLowerCase()));
+
+    /// sort by school name (optional)
+    clubbedList.sort((a, b) =>
+        a.schoolName.toLowerCase().compareTo(b.schoolName.toLowerCase()));
 
     return clubbedList;
   }
@@ -236,6 +237,7 @@ class _SaleInvoiceClubHistoryScreenState
                       child: Row(
                         children: [
                           SizedBox(width: 60, child: Text("Sr No")),
+                          // ✅ ADD
                           SizedBox(width: 260, child: Text("School")),
                           SizedBox(width: 160, child: Text("Amount")),
                           SizedBox(width: 80, child: Text("View")),
@@ -266,9 +268,7 @@ class _SaleInvoiceClubHistoryScreenState
                                 child: Row(
                                   children: [
                                     SizedBox(width: 60, child: Text("${index + 1}")),
-                                    if (!isClubView) SizedBox(width: 80, child: Text(item.billNo)),
                                     SizedBox(width: 260, child: Text(item.schoolName)),
-                                    if (!isClubView) SizedBox(width: 140, child: Text(formatDate(item.date))),
                                     SizedBox(
                                       width: 160,
                                       child: Text("₹ ${item.totalAmount.toStringAsFixed(2)}"),

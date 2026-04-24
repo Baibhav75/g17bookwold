@@ -10,6 +10,7 @@ import '../AccountSaleHodScreen/sale_sample_return_list_screen.dart';
 import '../AccountSaleHodScreen/sample_sale_billing_screen.dart';
 import '../Sale/SaleInvoice.dart';
 import '../Sale/SampleSaleInvoice.dart';
+import '../SellReturn/SaleNotReturnListScreen.dart';
 import 'EnterysaleScreen.dart';
 import 'SaleInvoiceIndividuleHistory.dart';
 
@@ -121,7 +122,7 @@ class SaleManagementPage extends StatelessWidget {
                   context,
                   3,
                   "Sale Sample Not For Return",
-                  const SaleSampleReturnListScreen(), // replace page
+                  const SaleNotReturnListScreen(), // replace page
                 ),
               ],
             ),
