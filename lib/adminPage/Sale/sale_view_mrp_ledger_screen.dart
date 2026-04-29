@@ -19,6 +19,7 @@ class SaleViewMRPLedgerScreen extends StatefulWidget {
 Future<void> shareLedger(SaleViewMRPLedgerResponse data) async {
   final file = await SaleLedgerPdf.generate(data);
 
+
   await Share.shareXFiles(
     [XFile(file.path)],
     text: "Sale Ledger Report",
@@ -53,6 +54,7 @@ class _SaleViewMRPLedgerScreenState
     final dt = DateTime.parse(raw);
     return "${dt.day}/${dt.month}/${dt.year}";
   }
+  String date = ""; // example
 
   @override
   Widget build(BuildContext context) {
@@ -161,11 +163,30 @@ class _SaleViewMRPLedgerScreenState
                       const SizedBox(height: 10),
 
                       /// TITLE
-                      const Text(
-                        "Sale Ledger Statement",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
+                      Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "MRP ",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "Sale Ledger Statement",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 10),
@@ -179,6 +200,18 @@ class _SaleViewMRPLedgerScreenState
                             cell("Address: ${data.address}"),
                           ]),
                         ],
+                      ),
+
+// 👇 DATE (CENTER PERFECT)
+                      const SizedBox(height: 6),
+
+                      Center(
+                        child: Text(
+                          "Date: $date",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 10),
@@ -225,15 +258,22 @@ class _SaleViewMRPLedgerScreenState
                             final isOpening =
                             e.particulars.toLowerCase().contains("opening");
 
+                            final isReceipt =
+                            e.particulars.toLowerCase().contains("receipt");
+
                             return TableRow(
                               decoration: BoxDecoration(
                                 color: isOpening ? Colors.green.shade100 : null,
                               ),
                               children: [
-                                cell(formatDate(e.date)),
+                                cell(
+                                  isOpening ? "" : formatDate(e.date),
+                                ),
 
                                 GestureDetector(
-                                  onTap: () {
+                                  onTap: isReceipt
+                                      ? null // ❌ click disable
+                                      : () {
                                     final billNo = e.particulars
                                         .replaceAll(RegExp(r'[^0-9]'), '');
                                     final formattedDate = formatDate(e.date);
@@ -265,6 +305,8 @@ class _SaleViewMRPLedgerScreenState
                                     bold: true,
                                     color: isOpening
                                         ? Colors.green.shade900
+                                        : e.particulars.toLowerCase().contains("receipt")
+                                        ? Colors.black
                                         : Colors.blue,
                                   ),
                                 ),
@@ -293,8 +335,8 @@ class _SaleViewMRPLedgerScreenState
                               cell(""),
                               cell("Total :", bold: true),
 
-                              cell("₹ ${data.totalDebit}\n($debitCount)"),
-                              cell("₹ ${data.totalCredit}\n($creditCount)"),
+                              cell("₹ ${data.totalDebit}"),
+                              cell("₹ ${data.totalCredit}"),
                               cell(""),
                             ],
                           ),

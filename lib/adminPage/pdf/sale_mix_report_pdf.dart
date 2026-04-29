@@ -25,7 +25,7 @@ class SaleMixReportPdf {
     /// 🔹 SUBTOTAL FUNCTION
     Map<String, dynamic> subtotal(List<SaleMixItem> items) {
       int sale = 0, ret = 0, net = 0;
-      double amount = 0, netAmount = 0;
+      double amount = 0, netAmount = 0, discountAmt = 0;
 
       for (var e in items) {
         sale += e.saleQty;
@@ -33,6 +33,7 @@ class SaleMixReportPdf {
         net += e.netQty;
         amount += e.amount;
         netAmount += e.netAmount;
+        discountAmt += (e.amount - e.netAmount);
       }
 
       return {
@@ -40,7 +41,8 @@ class SaleMixReportPdf {
         "ret": ret,
         "net": net,
         "amount": amount,
-        "netAmount": netAmount
+        "netAmount": netAmount,
+        "discountAmt": discountAmt,
       };
     }
 
@@ -191,7 +193,11 @@ class SaleMixReportPdf {
                         cell(e.netQty.toString()),
                         cell(e.rate.toStringAsFixed(2)),
                         cell(e.amount.toStringAsFixed(2)),
-                        cell(e.discount.toStringAsFixed(2)),
+                        cell(e.discount > 0 
+                            ? "${e.discount.toStringAsFixed(2)}%" 
+                            : (e.amount > e.netAmount 
+                                ? "${(((e.amount - e.netAmount) / e.amount) * 100).toStringAsFixed(2)}%" 
+                                : "-")),
                         cell(e.netAmount.toStringAsFixed(2)),
                       ],
                     ),
@@ -208,9 +214,11 @@ class SaleMixReportPdf {
                       cell(sub["sale"].toString(), bold: true),
                       cell(sub["ret"].toString(), bold: true),
                       cell(sub["net"].toString(), bold: true),
-                      cell(""),
+                      cell(""), // Rate
                       cell(sub["amount"].toStringAsFixed(2), bold: true),
-                      cell(""),
+                      cell(sub["amount"] > 0
+                          ? (((sub["amount"] - sub["netAmount"]) / sub["amount"]) * 100).toStringAsFixed(2) + "%"
+                          : "0%", bold: true),
                       cell(sub["netAmount"].toStringAsFixed(2),
                           bold: true),
                     ],
@@ -229,9 +237,11 @@ class SaleMixReportPdf {
                   cell(data.totalSaleQty.toString(), bold: true),
                   cell(data.totalReturnQty.toString(), bold: true),
                   cell(totalNetQty.toString(), bold: true),
-                  cell(""),
+                  cell(""), // Rate
                   cell(data.totalAmount.toStringAsFixed(2), bold: true),
-                  cell(""),
+                  cell(data.totalAmount > 0
+                      ? (((data.totalAmount - data.totalNetAmount) / data.totalAmount) * 100).toStringAsFixed(2) + "%"
+                      : "0%", bold: true),
                   cell(data.totalNetAmount.toStringAsFixed(2), bold: true),
                 ],
               ),

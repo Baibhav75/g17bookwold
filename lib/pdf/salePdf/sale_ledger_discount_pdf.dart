@@ -152,11 +152,10 @@ class SaleLedgerDiscountPdf {
             border: pw.TableBorder.all(),
             columnWidths: {
               0: const pw.FlexColumnWidth(1.2),
-              1: const pw.FlexColumnWidth(1.2),
-              2: const pw.FlexColumnWidth(4),
+              1: const pw.FlexColumnWidth(4),
+              2: const pw.FlexColumnWidth(1.2),
               3: const pw.FlexColumnWidth(1.2),
-              4: const pw.FlexColumnWidth(1.2),
-              5: const pw.FlexColumnWidth(1.5),
+              4: const pw.FlexColumnWidth(1.5),
             },
             children: [
 
@@ -165,7 +164,6 @@ class SaleLedgerDiscountPdf {
                 decoration: pw.BoxDecoration(color: PdfColors.grey300),
                 children: [
                   cell("Date", bold: true),
-                  cell("Vch No", bold: true),
                   cell("Particulars", bold: true),
                   cell("Debit", bold: true),
                   cell("Credit", bold: true),
@@ -178,18 +176,17 @@ class SaleLedgerDiscountPdf {
                 return pw.TableRow(
                   children: [
                     cell(formatDate(e.date)),
-                    cell(e.type),
                     cell(e.particulars, color: PdfColors.blue),
-                    cell("Rs${e.debit.toStringAsFixed(2)}",
-                        align: pw.TextAlign.right),
+                    cell("Rs${e.debit.toStringAsFixed(2)}", align: pw.TextAlign.right),
                     cell(
-                        e.credit == 0
-                            ? ""
-                            : "Rs${e.credit.toStringAsFixed(2)}",
-                        align: pw.TextAlign.right),
-                    cell("Rs${e.balance.toStringAsFixed(2)}",
-                        bold: true,
-                        align: pw.TextAlign.right),
+                      e.credit == 0 ? "" : "Rs${e.credit.toStringAsFixed(2)}",
+                      align: pw.TextAlign.right,
+                    ),
+                    cell(
+                      "Rs${e.balance.toStringAsFixed(2)}",
+                      bold: true,
+                      align: pw.TextAlign.right,
+                    ),
                   ],
                 );
               }).toList(),
@@ -199,14 +196,9 @@ class SaleLedgerDiscountPdf {
                 decoration: pw.BoxDecoration(color: PdfColors.grey200),
                 children: [
                   cell(""),
-                  cell(""),
                   cell("Total", bold: true, align: pw.TextAlign.right),
-                  cell("Rs${data.totalDebit.toStringAsFixed(2)}",
-                      bold: true,
-                      align: pw.TextAlign.right),
-                  cell("Rs${data.totalCredit.toStringAsFixed(2)}",
-                      bold: true,
-                      align: pw.TextAlign.right),
+                  cell("Rs${data.totalDebit.toStringAsFixed(2)}", bold: true, align: pw.TextAlign.right),
+                  cell("Rs${data.totalCredit.toStringAsFixed(2)}", bold: true, align: pw.TextAlign.right),
                   cell(""),
                 ],
               ),
@@ -216,10 +208,9 @@ class SaleLedgerDiscountPdf {
                 decoration: pw.BoxDecoration(color: PdfColors.blue100),
                 children: [
                   cell(""),
-                  cell(""),
-                  cell(""),
-                  cell(""),
                   cell("Closing Balance", bold: true, align: pw.TextAlign.right),
+                  cell(""),
+                  cell(""),
                   cell("Rs${data.closingBalance.toStringAsFixed(2)}",
                       bold: true,
                       align: pw.TextAlign.right),

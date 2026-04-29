@@ -16,11 +16,18 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
 
   bool isLoading = true;
   double grandTotal = 0;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     loadData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void loadData() async {
@@ -66,7 +73,44 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "btnUp",
+            mini: true,
+            backgroundColor: Colors.deepPurple,
+            foregroundColor: Colors.white,
+            onPressed: () {
+              if (_scrollController.hasClients) {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            },
+            child: const Icon(Icons.arrow_upward),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: "btnDown",
+            mini: true,
+            backgroundColor: Colors.deepPurple,
+            foregroundColor: Colors.white,
+            onPressed: () {
+              if (_scrollController.hasClients) {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            },
+            child: const Icon(Icons.arrow_downward),
+          ),
+        ],
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : filteredList.isEmpty
@@ -137,6 +181,7 @@ class _SaleReturnListScreenState extends State<SaleReturnListScreen> {
                     /// LIST
                     Expanded(
                       child: ListView.builder(
+                        controller: _scrollController,
                         itemCount: filteredList.length,
                         itemBuilder: (context, index) {
                           final item = filteredList[index];

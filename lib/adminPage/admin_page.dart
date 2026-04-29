@@ -29,6 +29,7 @@ import 'agent_list_page.dart';
 
 import 'oderManagement/OderManagement.dart';
 import 'oderManagement/discussion_order_list_screen.dart';
+import '/Service/update_service.dart';
 
 class AdminPage extends StatefulWidget {
   final LoginModel? userData;
@@ -54,6 +55,21 @@ class _AdminPageState extends State<AdminPage> {
     setState(() {
       _currentIndex = 1;
     });
+  }
+
+  bool isChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (!isChecked) {
+      isChecked = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        UpdateService.checkForUpdate(context);
+      });
+    }
   }
 
   void _navigateToAttendanceHistory() {

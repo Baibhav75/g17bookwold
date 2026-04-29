@@ -7,6 +7,7 @@ import 'Recovery/recoveryAgentLogin.dart';
 import 'SchoolPage/school login.dart';
 import 'adminPage/adminLogin.dart';
 import 'counterPage/counterLogin.dart';
+import 'Service/update_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -26,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    UpdateService.checkForUpdate(context);
 
     _controller = AnimationController(
       vsync: this,

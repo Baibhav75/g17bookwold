@@ -108,6 +108,14 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
           data.schoolName,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
+        if (data.totalDiscount > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              "Total Discount: ₹${data.totalDiscount.toStringAsFixed(2)}",
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.red),
+            ),
+          ),
       ],
     );
   }
@@ -125,7 +133,7 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
 
   Map<String, dynamic> subtotal(List<SaleMixItem> items) {
     int sale = 0, ret = 0, net = 0;
-    double amount = 0, netAmount = 0;
+    double amount = 0, netAmount = 0, discountAmt = 0;
 
     for (var e in items) {
       sale += e.saleQty;
@@ -133,6 +141,7 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
       net += e.netQty;
       amount += e.amount;
       netAmount += e.netAmount;
+      discountAmt += (e.amount - e.netAmount);
     }
 
     return {
@@ -140,7 +149,8 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
       "ret": ret,
       "net": net,
       "amount": amount,
-      "netAmount": netAmount
+      "netAmount": netAmount,
+      "discountAmt": discountAmt,
     };
   }
 
@@ -273,7 +283,12 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
                                     tableCell(
                                         e.amount.toStringAsFixed(2)),
                                     tableCell(
-                                        e.discount.toStringAsFixed(2)),
+                                      e.discount > 0 
+                                          ? "${e.discount.toStringAsFixed(2)}%" 
+                                          : (e.amount > e.netAmount 
+                                              ? "${(((e.amount - e.netAmount) / e.amount) * 100).toStringAsFixed(2)}%" 
+                                              : "-"),
+                                    ),
                                     tableCell(
                                         e.netAmount.toStringAsFixed(2)),
                                   ],
@@ -296,11 +311,16 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
                                       weight: FontWeight.bold),
                                   tableCell(sub["net"].toString(),
                                       weight: FontWeight.bold),
-                                  const SizedBox(),
+                                  const SizedBox(), // Rate
                                   tableCell(
                                       sub["amount"].toStringAsFixed(2),
                                       weight: FontWeight.bold),
-                                  const SizedBox(),
+                                  tableCell(
+                                    sub["amount"] > 0
+                                        ? (((sub["amount"] - sub["netAmount"]) / sub["amount"]) * 100).toStringAsFixed(2) + "%"
+                                        : "0%",
+                                    weight: FontWeight.bold,
+                                  ),
                                   tableCell(
                                       sub["netAmount"].toStringAsFixed(2),
                                       weight: FontWeight.bold),
@@ -323,13 +343,17 @@ class _SaleMixReportScreenState extends State<SaleMixReportScreen> {
                                   weight: FontWeight.bold),
                               tableCell(data.totalReturnQty.toString(),
                                   weight: FontWeight.bold),
-                              tableCell(data.totalSaleQty.toString(),
+                              tableCell((data.totalSaleQty - data.totalReturnQty).toString(),
                                   weight: FontWeight.bold),
-                              const SizedBox(),
+                              const SizedBox(), // Rate
                               tableCell(
                                   data.totalAmount.toStringAsFixed(2),
                                   weight: FontWeight.bold),
-                              const SizedBox(),
+                              tableCell(
+                                  data.totalAmount > 0
+                                      ? (((data.totalAmount - data.totalNetAmount) / data.totalAmount) * 100).toStringAsFixed(2) + "%"
+                                      : "0%",
+                                  weight: FontWeight.bold),
                               tableCell(
                                   data.totalNetAmount.toStringAsFixed(2),
                                   weight: FontWeight.bold),

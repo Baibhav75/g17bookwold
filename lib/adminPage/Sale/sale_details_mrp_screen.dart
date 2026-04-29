@@ -113,7 +113,7 @@ class _SaleDetailsMrpScreenState extends State<SaleDetailsMrpScreen> {
         const Divider(color: Colors.black, thickness: 2),
         const SizedBox(height: 10),
         const Text(
-          "Sale MRP Invoice",
+          "SAlE MRP INVOICE",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400, color: Color(0xFF2B4C7E)),
         ),
         const SizedBox(height: 15),
@@ -317,26 +317,8 @@ class _SaleDetailsMrpScreenState extends State<SaleDetailsMrpScreen> {
                               );
                             }
 
-                            // ✅ SERIES SUBTOTAL ROW
-                            rows.add(
-                              TableRow(
-                                decoration: BoxDecoration(color: Colors.orange.shade50),
-                                children: [
-                                  const SizedBox(),
-                                  tableCell(
-                                    "Series Subtotal:",
-                                    align: TextAlign.right,
-                                    weight: FontWeight.bold,
-                                  ),
-                                  tableCell(groupQty.toStringAsFixed(0), weight: FontWeight.bold),
-                                  const SizedBox(),
-                                  tableCell("₹ ${groupAmount.toStringAsFixed(2)}",
-                                      weight: FontWeight.bold),
-                                  tableCell("₹ ${groupDiscAmount.toStringAsFixed(2)}",
-                                      weight: FontWeight.bold),
-                                ],
-                              ),
-                            );
+
+
 
                             return rows;
                           }),

@@ -142,7 +142,6 @@ class _SaleNotReturnListScreenState
                                 SizedBox(width: 140, child: Text(formatDate(item.date))),
 
 
-
                                 /// ACTION
                                 SizedBox(
                                   width: 60,

@@ -4,6 +4,7 @@ class SaleMixReportMrpModel {
   final int totalReturnQty;
   final double totalAmount;
   final double totalNetAmount;
+  final double totalDiscount;
   final List<SaleMixItem> data;
 
   SaleMixReportMrpModel({
@@ -12,17 +13,19 @@ class SaleMixReportMrpModel {
     required this.totalReturnQty,
     required this.totalAmount,
     required this.totalNetAmount,
+    required this.totalDiscount,
     required this.data,
   });
 
   factory SaleMixReportMrpModel.fromJson(Map<String, dynamic> json) {
     return SaleMixReportMrpModel(
       schoolName: json['SchoolName'] ?? '',
-      totalSaleQty: json['TotalSaleQty'] ?? 0,
-      totalReturnQty: json['TotalReturnQty'] ?? 0,
-      totalAmount: (json['TotalAmount'] ?? 0).toDouble(),
-      totalNetAmount: (json['TotalNetAmount'] ?? 0).toDouble(),
-      data: (json['Data'] as List)
+      totalSaleQty: int.tryParse(json['TotalSaleQty'].toString()) ?? 0,
+      totalReturnQty: int.tryParse(json['TotalReturnQty'].toString()) ?? 0,
+      totalAmount: double.tryParse(json['TotalAmount'].toString()) ?? 0.0,
+      totalNetAmount: double.tryParse(json['TotalNetAmount'].toString()) ?? 0.0,
+      totalDiscount: double.tryParse(json['TotalDiscount']?.toString() ?? '') ?? 0.0,
+      data: (json['Data'] as List? ?? [])
           .map((e) => SaleMixItem.fromJson(e))
           .toList(),
     );
@@ -59,13 +62,14 @@ class SaleMixItem {
       publication: json['Publication'] ?? '',
       series: json['Series'] ?? '',
       bookName: json['BookName'] ?? '',
-      saleQty: json['SaleQty'] ?? 0,
-      returnQty: json['SaleReturnQty'] ?? 0,
-      netQty: json['NetQty'] ?? 0,
-      rate: (json['Rate'] ?? 0).toDouble(),
-      amount: (json['Amount'] ?? 0).toDouble(),
-      discount: (json['DiscountPercent'] ?? 0).toDouble(),
-      netAmount: (json['NetAmount'] ?? 0).toDouble(),
+      saleQty: int.tryParse(json['SaleQty'].toString()) ?? 0,
+      returnQty: int.tryParse(json['SaleReturnQty'].toString()) ?? 0,
+      netQty: int.tryParse(json['NetQty'].toString()) ?? 0,
+      rate: double.tryParse(json['Rate'].toString()) ?? 0.0,
+      amount: double.tryParse(json['Amount'].toString()) ?? 0.0,
+      discount: double.tryParse(json['DiscountPercent']?.toString() ?? '') ?? 
+                double.tryParse(json['Discount']?.toString() ?? '') ?? 0.0,
+      netAmount: double.tryParse(json['NetAmount'].toString()) ?? 0.0,
     );
   }
 }

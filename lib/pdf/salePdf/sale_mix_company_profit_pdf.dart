@@ -15,17 +15,35 @@ class SaleMixCompanyProfitPdf {
       grouped.putIfAbsent(key, () => []).add(item);
     }
 
-    /// 🔹 TOTAL RATE
-    double totalRate = data.summary.totalSaleQty == 0
-        ? 0
-        : data.summary.totalAmount / data.summary.totalSaleQty;
-
-    /// 🔹 NET QTY
     int totalNetQty =
         data.summary.totalSaleQty - data.summary.totalReturnQty;
 
+    double totalRate = 0;
+    for (var e in data.data) {
+      totalRate += e.rate;
+    }
+
+    double totalPurDisc = data.data.isEmpty
+        ? 0
+        : data.data.map((e) => e.purchaseDiscount).reduce((a, b) => a + b) /
+        data.data.length;
+    double totalSaleDisc = data.data.isEmpty
+        ? 0
+        : data.data.map((e) => e.saleDiscount).reduce((a, b) => a + b) /
+        data.data.length;
+    double totalProfitDisc = data.data.isEmpty
+        ? 0
+        : data.data.map((e) => e.profitDiscount).reduce((a, b) => a + b) /
+        data.data.length;
+
     pdf.addPage(
       pw.MultiPage(
+        pageFormat: PdfPageFormat.a4.copyWith(
+          marginBottom: 10,
+          marginLeft: 10,
+          marginRight: 10,
+          marginTop: 10,
+        ).landscape,
         margin: const pw.EdgeInsets.all(16),
         build: (context) => [
 
@@ -40,7 +58,6 @@ class SaleMixCompanyProfitPdf {
                       children: [
                         pw.Text("GJ",
                             style: pw.TextStyle(
-                                fontSize: 14,
                                 fontWeight: pw.FontWeight.bold)),
                         pw.Text("BOOK WORLD",
                             textAlign: pw.TextAlign.center,
@@ -61,10 +78,10 @@ class SaleMixCompanyProfitPdf {
                               color: PdfColor.fromInt(0xFF2B4C7E),
                             ),
                           ),
-                          pw.SizedBox(height: 6),
+                          pw.SizedBox(height: 4),
                           pw.Text(
                             "D-1/20, SECTOR 22, GIDA, GORAKHPUR\n"
-                                "Cont. - 9354918638",
+                                "Cont. - 9354918638, 9354918644",
                             textAlign: pw.TextAlign.center,
                             style: pw.TextStyle(fontSize: 9),
                           ),
@@ -81,15 +98,13 @@ class SaleMixCompanyProfitPdf {
               pw.Text("Company Profit Report",
                   style: pw.TextStyle(
                       fontSize: 16, fontWeight: pw.FontWeight.bold)),
-
-              pw.Text(data.schoolName,
-                  style: pw.TextStyle(fontSize: 12)),
+              pw.Text(data.schoolName),
             ],
           ),
 
           pw.SizedBox(height: 15),
 
-          /// 🔷 SECTION WISE (LIKE UI CARDS)
+          /// 🔷 GROUP SECTIONS
           ...grouped.entries.expand((entry) {
             final parts = entry.key.split("|");
             final series = parts[0];
@@ -110,14 +125,27 @@ class SaleMixCompanyProfitPdf {
               subNetAmount += e.netAmount;
             }
 
-            double subRate = items.isEmpty
+            double subRate = 0;
+            for (var e in items) {
+              subRate += e.rate;
+            }
+
+            double subPurDisc = items.isEmpty
                 ? 0
-                : items.map((e) => e.rate).reduce((a, b) => a + b) /
+                : items.map((e) => e.purchaseDiscount).reduce((a, b) => a + b) /
+                items.length;
+            double subSaleDisc = items.isEmpty
+                ? 0
+                : items.map((e) => e.saleDiscount).reduce((a, b) => a + b) /
+                items.length;
+            double subProfitDisc = items.isEmpty
+                ? 0
+                : items.map((e) => e.profitDiscount).reduce((a, b) => a + b) /
                 items.length;
 
             return [
 
-              /// 🔹 SECTION HEADER (BLUE)
+              /// 🔹 SECTION HEADER
               pw.Container(
                 width: double.infinity,
                 padding: const pw.EdgeInsets.all(8),
@@ -156,24 +184,24 @@ class SaleMixCompanyProfitPdf {
                       cell("Net", bold: true),
                       cell("Rate", bold: true),
                       cell("Amount", bold: true),
-                      cell("PurDisc", bold: true),
-                      cell("SaleDisc", bold: true),
-                      cell("ProfitDisc", bold: true),
+                      cell("PurDisc%", bold: true),
+                      cell("SaleDisc%", bold: true),
+                      cell("ProfitDisc%", bold: true),
                       cell("NetAmt", bold: true),
                     ],
                   ),
 
                   /// DATA
                   ...items.map((e) => pw.TableRow(children: [
-                    cell(e.bookName),
+                    cell(e.bookName, align: pw.TextAlign.left),
                     cell(e.saleQty.toString()),
                     cell(e.returnQty.toString()),
                     cell(e.netQty.toString()),
                     cell(e.rate.toStringAsFixed(2)),
                     cell(e.amount.toStringAsFixed(2)),
-                    cell(e.purchaseDiscount.toStringAsFixed(2)),
-                    cell(e.saleDiscount.toStringAsFixed(2)),
-                    cell(e.profitDiscount.toStringAsFixed(2)),
+                    cell("${e.purchaseDiscount.toStringAsFixed(2)}%"),
+                    cell("${e.saleDiscount.toStringAsFixed(2)}%"),
+                    cell("${e.profitDiscount.toStringAsFixed(2)}%"),
                     cell(e.netAmount.toStringAsFixed(2)),
                   ])),
 
@@ -188,11 +216,10 @@ class SaleMixCompanyProfitPdf {
                       cell(subNet.toString(), bold: true),
                       cell(subRate.toStringAsFixed(2), bold: true),
                       cell(subAmount.toStringAsFixed(2), bold: true),
-                      cell(""),
-                      cell(""),
-                      cell(""),
-                      cell(subNetAmount.toStringAsFixed(2),
-                          bold: true),
+                      cell("${subPurDisc.toStringAsFixed(2)}%", bold: true),
+                      cell("${subSaleDisc.toStringAsFixed(2)}%", bold: true),
+                      cell("${subProfitDisc.toStringAsFixed(2)}%", bold: true),
+                      cell(subNetAmount.toStringAsFixed(2), bold: true),
                     ],
                   ),
                 ],
@@ -205,6 +232,18 @@ class SaleMixCompanyProfitPdf {
           /// 🔷 GRAND TOTAL
           pw.Table(
             border: pw.TableBorder.all(),
+            columnWidths: {
+              0: const pw.FlexColumnWidth(4),
+              1: const pw.FixedColumnWidth(50),
+              2: const pw.FixedColumnWidth(50),
+              3: const pw.FixedColumnWidth(50),
+              4: const pw.FixedColumnWidth(60),
+              5: const pw.FixedColumnWidth(70),
+              6: const pw.FixedColumnWidth(60),
+              7: const pw.FixedColumnWidth(60),
+              8: const pw.FixedColumnWidth(70),
+              9: const pw.FixedColumnWidth(80),
+            },
             children: [
               pw.TableRow(
                 decoration:
@@ -217,9 +256,9 @@ class SaleMixCompanyProfitPdf {
                   cell(totalRate.toStringAsFixed(2), bold: true),
                   cell(data.summary.totalAmount.toStringAsFixed(2),
                       bold: true),
-                  cell(""),
-                  cell(""),
-                  cell(""),
+                  cell("${totalPurDisc.toStringAsFixed(2)}%", bold: true),
+                  cell("${totalSaleDisc.toStringAsFixed(2)}%", bold: true),
+                  cell("${totalProfitDisc.toStringAsFixed(2)}%", bold: true),
                   cell(data.summary.totalNetAmount.toStringAsFixed(2),
                       bold: true),
                 ],
@@ -229,7 +268,7 @@ class SaleMixCompanyProfitPdf {
 
           pw.SizedBox(height: 15),
 
-          /// 🔷 SUMMARY (BOTTOM)
+          /// 🔷 FOOTER SUMMARY
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
@@ -266,7 +305,7 @@ class SaleMixCompanyProfitPdf {
         text,
         textAlign: align,
         style: pw.TextStyle(
-          fontSize: 9,
+          fontSize: 8,
           fontWeight:
           bold ? pw.FontWeight.bold : pw.FontWeight.normal,
         ),

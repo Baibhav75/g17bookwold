@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/Model/sale_return_sample_model.dart';
 import '/Service/sale_return_sample_service.dart';
+import '/pdf/salePdf/saleSampleReturnDiscount.dart';
 
 class SaleReturnSampleScreen extends StatefulWidget {
   final String billNo;
@@ -203,6 +204,15 @@ class _SaleReturnSampleScreenState extends State<SaleReturnSampleScreen> {
         title: const Text("Sale Return Sample"),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () async {
+              final data = await future;
+              generateAndSharePDF(data);
+            },
+          )
+        ],
       ),
       body: FutureBuilder<SaleReturnSampleModel>(
         future: future,

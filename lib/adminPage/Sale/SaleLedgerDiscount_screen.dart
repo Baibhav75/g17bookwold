@@ -128,7 +128,7 @@ class _SaleLedgerDiscountScreenState extends State<SaleLedgerDiscountScreen> {
         const Divider(color: Colors.black, thickness: 2),
         const SizedBox(height: 15),
         const Text(
-          "Sale Ledger Statement",
+          "SALE LEDGER STATEMENT",
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2B4C7E), decoration: TextDecoration.underline),
         ),
         const SizedBox(height: 20),
@@ -239,20 +239,18 @@ class _SaleLedgerDiscountScreenState extends State<SaleLedgerDiscountScreen> {
                       /// 📊 Ledger Table
                       Table(
                         border: TableBorder.all(color: Colors.black54),
-                        columnWidths: const {
-                          0: FlexColumnWidth(1.2),
-                          1: FlexColumnWidth(1.2),
-                          2: FlexColumnWidth(4),
-                          3: FlexColumnWidth(1.2),
-                          4: FlexColumnWidth(1.2),
-                          5: FlexColumnWidth(1.5),
-                        },
+                          columnWidths: const {
+                            0: FlexColumnWidth(1.2),
+                            1: FlexColumnWidth(4),
+                            2: FlexColumnWidth(1.2),
+                            3: FlexColumnWidth(1.2),
+                            4: FlexColumnWidth(1.5),
+                          },
                         children: [
                           TableRow(
                             decoration: BoxDecoration(color: Colors.grey.shade100),
                             children: [
                               _tableHeaderCell("Date"),
-                              _tableHeaderCell("Vch No"),
                               _tableHeaderCell("Particulars"),
                               _tableHeaderCell("Debit"),
                               _tableHeaderCell("Credit"),
@@ -262,38 +260,40 @@ class _SaleLedgerDiscountScreenState extends State<SaleLedgerDiscountScreen> {
 
                           /// DATA
                           ...data.ledger.map((e) {
-                            return TableRow(children: [
-                              _cell(e.type == "Opening" ? "" : formatDate(e.date)),
-                              _cell(e.type),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => SaleInvoiceDetailsScreen(
-                                        billNo: e.particulars.replaceAll(RegExp(r'[^0-9]'), ''),
-                                        date: formatDate(e.date),
+                            return TableRow(
+                              children: [
+                                _cell(e.type == "Opening" ? "" : formatDate(e.date)),
+
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => SaleInvoiceDetailsScreen(
+                                          billNo: e.particulars.replaceAll(RegExp(r'[^0-9]'), ''),
+                                          date: formatDate(e.date),
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                                child: _cell(
-                                  e.particulars,
-                                  color: Colors.blue,
-                                  align: TextAlign.center,
+                                    );
+                                  },
+                                  child: _cell(
+                                    e.particulars,
+                                    color: Colors.blue,
+                                    align: TextAlign.center,
+                                  ),
                                 ),
-                              ),
-                              _cell("₹${e.debit.toStringAsFixed(2)}", align: TextAlign.right),
-                              _cell(e.credit == 0 ? "" : "₹${e.credit.toStringAsFixed(2)}", align: TextAlign.right),
-                              _cell("₹${e.balance.toStringAsFixed(2)}", align: TextAlign.right, bold: true),
-                            ]);
+
+                                _cell("₹${e.debit.toStringAsFixed(2)}", align: TextAlign.right),
+                                _cell(e.credit == 0 ? "" : "₹${e.credit.toStringAsFixed(2)}", align: TextAlign.right),
+                                _cell("₹${e.balance.toStringAsFixed(2)}", align: TextAlign.right, bold: true),
+                              ],
+                            );
                           }),
 
                           /// TOTAL
                           TableRow(
                             decoration: BoxDecoration(color: Colors.grey.shade100),
                             children: [
-                              _cell(""),
                               _cell(""),
                               _cell("Total :", align: TextAlign.right, bold: true),
                               _cell("₹${data.totalDebit}", align: TextAlign.right, bold: true),
@@ -307,18 +307,18 @@ class _SaleLedgerDiscountScreenState extends State<SaleLedgerDiscountScreen> {
                             decoration: BoxDecoration(color: Colors.blue.shade50),
                             children: [
                               _cell(""),
-                              _cell(""),
-                              _cell(""),
-                              _cell(""),
                               _cell("Closing Balance :", align: TextAlign.right, bold: true),
-                              _cell("₹${data.closingBalance}", align: TextAlign.right, bold: true, color: Colors.black),
+                              _cell(""),
+                              _cell(""),
+
+                              _cell("₹${data.closingBalance}", align: TextAlign.right, bold: true),
                             ],
                           ),
                         ],
                       ),
                       
                       const SizedBox(height: 40),
-                      
+
                       const Text(
                         "Checked By: ___________________________",
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),

@@ -18,7 +18,10 @@ class _NewRecoverBalanceScreenState
     extends State<NewRecoverBalanceScreen> {
 
   List<NewRecoverBalanceModel> list = [];
+  List<NewRecoverBalanceModel> filteredList = [];
   bool isLoading = true;
+
+  final TextEditingController _searchController = TextEditingController();
 
   double totalOpening = 0;
   double totalDebit = 0;
@@ -43,6 +46,7 @@ class _NewRecoverBalanceScreenState
 
     if (data.isNotEmpty) {
       list = data;
+      filteredList = data;
     }
 
     calculateTotals();
@@ -50,6 +54,20 @@ class _NewRecoverBalanceScreenState
     setState(() => isLoading = false);
   }
 
+  void _onSearchChanged(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredList = list;
+      } else {
+        filteredList = list
+            .where((item) =>
+                item.schoolName.toLowerCase().contains(query.toLowerCase()) ||
+                item.agentName.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+      calculateTotals();
+    });
+  }
 
   void calculateTotals() {
     totalOpening = 0;
@@ -58,7 +76,7 @@ class _NewRecoverBalanceScreenState
     totalReturn = 0;
     finalNet = 0;
 
-    for (var item in list) {
+    for (var item in filteredList) {
       totalOpening += item.openingBalance;
       totalDebit += item.totalDebit;
       totalPayment += item.totalPayment;
@@ -120,8 +138,35 @@ class _NewRecoverBalanceScreenState
         padding: EdgeInsets.all(12),
         child: SchoolLoader(), // ✅ your shimmer loader
       )
-          : Column(
+      : Column(
         children: [
+          /// 🔍 SEARCH BAR
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: "Search School or Agent name...",
+                prefixIcon: const Icon(Icons.search, color: Colors.deepPurple),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+                ),
+              ),
+            ),
+          ),
 
           /// 🔥 TABLE
           Flexible(
@@ -159,10 +204,10 @@ class _NewRecoverBalanceScreenState
                           Flexible( // ✅ IMPORTANT CHANGE
                             child: ListView.builder(
                               controller: _scrollController, // ✅ ADD THIS LINE
-                              itemCount: list.length,
+                              itemCount: filteredList.length,
 
                               itemBuilder: (context, index) {
-                                final item = list[index];
+                                final item = filteredList[index];
                                 return InkWell(
                                     onTap: () {
                                       Navigator.push(
@@ -282,6 +327,7 @@ class _NewRecoverBalanceScreenState
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 }

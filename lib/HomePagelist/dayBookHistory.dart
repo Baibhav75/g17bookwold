@@ -382,7 +382,6 @@ class _DayBookHistoryState extends State<DayBookHistory> {
   }
 
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

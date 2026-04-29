@@ -38,8 +38,6 @@ class _ReceiveCollectionScreenState extends State<ReceiveCollectionScreen> {
     }
   }
 
-
-
   @override
   void initState() {
     super.initState();

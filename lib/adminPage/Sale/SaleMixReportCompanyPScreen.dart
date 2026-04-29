@@ -119,7 +119,7 @@ class _SaleMixReportCompanyPScreenState
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Company Profit Report"),
+        title: const Text("SALE MIX"),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
         actions: [
@@ -147,9 +147,23 @@ class _SaleMixReportCompanyPScreenState
 
           final data = snapshot.data!;
           final grouped = groupData(data.data);
-          double totalRate = data.summary.totalSaleQty == 0
+          double totalRate = 0;
+          for (var e in data.data) {
+            totalRate += e.rate;
+          }
+
+          double totalPurDisc = data.data.isEmpty
               ? 0
-              : data.summary.totalAmount / data.summary.totalSaleQty;
+              : data.data.map((e) => e.purchaseDiscount).reduce((a, b) => a + b) /
+              data.data.length;
+          double totalSaleDisc = data.data.isEmpty
+              ? 0
+              : data.data.map((e) => e.saleDiscount).reduce((a, b) => a + b) /
+              data.data.length;
+          double totalProfitDisc = data.data.isEmpty
+              ? 0
+              : data.data.map((e) => e.profitDiscount).reduce((a, b) => a + b) /
+              data.data.length;
 
 
           return SingleChildScrollView(
@@ -194,6 +208,19 @@ class _SaleMixReportCompanyPScreenState
                         subAmount += e.amount;
                         subNetAmount += e.netAmount;
                       }
+
+                      double subPurDisc = items.isEmpty
+                          ? 0
+                          : items.map((e) => e.purchaseDiscount).reduce((a, b) => a + b) /
+                          items.length;
+                      double subSaleDisc = items.isEmpty
+                          ? 0
+                          : items.map((e) => e.saleDiscount).reduce((a, b) => a + b) /
+                          items.length;
+                      double subProfitDisc = items.isEmpty
+                          ? 0
+                          : items.map((e) => e.profitDiscount).reduce((a, b) => a + b) /
+                          items.length;
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 20),
@@ -295,11 +322,11 @@ class _SaleMixReportCompanyPScreenState
                                         weight: FontWeight.bold),
                                     td(subAmount.toStringAsFixed(2),
                                         weight: FontWeight.bold),
-                                    td("0.00",
+                                    td(subPurDisc.toStringAsFixed(2),
                                         weight: FontWeight.bold),
-                                    td("0.00",
+                                    td(subSaleDisc.toStringAsFixed(2),
                                         weight: FontWeight.bold),
-                                    td("0.00",
+                                    td(subProfitDisc.toStringAsFixed(2),
                                         weight: FontWeight.bold),
                                     td(subNetAmount.toStringAsFixed(2),
                                         weight: FontWeight.bold),
@@ -325,12 +352,12 @@ class _SaleMixReportCompanyPScreenState
                             1: FixedColumnWidth(70),
                             2: FixedColumnWidth(70),
                             3: FixedColumnWidth(70),
-                            4: FixedColumnWidth(100),
-                            5: FixedColumnWidth(120),
+                            4: FixedColumnWidth(80),
+                            5: FixedColumnWidth(100),
                             6: FixedColumnWidth(80),
                             7: FixedColumnWidth(80),
                             8: FixedColumnWidth(90),
-                            9: FixedColumnWidth(120),
+                            9: FixedColumnWidth(110),
                           },
                           children: [
                             TableRow(
@@ -339,12 +366,12 @@ class _SaleMixReportCompanyPScreenState
                                 _gtCell("Grand Total"),
                                 _gtCell(data.summary.totalSaleQty.toString()),
                                 _gtCell(data.summary.totalReturnQty.toString()),
-                                _gtCell(data.summary.totalSaleQty.toString()),
+                                _gtCell((data.summary.totalSaleQty - data.summary.totalReturnQty).toString()),
                                 _gtCell(totalRate.toStringAsFixed(2)),
                                 _gtCell(data.summary.totalAmount.toStringAsFixed(2)),
-                                _gtCell("5.75"), // or dynamic
-                                _gtCell("0.00"),
-                                _gtCell("5.75"),
+                                _gtCell(totalPurDisc.toStringAsFixed(2)),
+                                _gtCell(totalSaleDisc.toStringAsFixed(2)),
+                                _gtCell(totalProfitDisc.toStringAsFixed(2)),
                                 _gtCell(data.summary.totalNetAmount.toStringAsFixed(2)),
                               ],
                             ),

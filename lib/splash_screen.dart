@@ -3,7 +3,7 @@ import 'home_screen.dart';
 import 'package:bookworld/Service/secure_storage_service.dart';
 import 'package:bookworld/Service/permission_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import '/Service/update_service.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
 
@@ -78,7 +78,6 @@ class _SplashScreenState extends State<SplashScreen>
     // 3️⃣ Animation start
     _controller.forward();
 
-    // 4️⃣ Permission check (ONLY ONE ENTRY POINT
     _checkPermissionAndProceed();
 
   }

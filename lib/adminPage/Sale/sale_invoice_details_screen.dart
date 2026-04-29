@@ -31,6 +31,13 @@ class _SaleInvoiceDetailsScreenState extends State<SaleInvoiceDetailsScreen> {
     super.initState();
     _invoiceFuture = SaleInvoiceDetailsService.fetchDetails(widget.billNo);
   }
+  String formatDate(DateTime? date) {
+    if (date == null) return "";
+    return "${date.day.toString().padLeft(2, '0')}-"
+        "${date.month.toString().padLeft(2, '0')}-"
+        "${date.year}";
+  }
+
 
   Widget infoCell(String label, String value, {TextAlign align = TextAlign.center}) {
     return Padding(
@@ -113,7 +120,7 @@ class _SaleInvoiceDetailsScreenState extends State<SaleInvoiceDetailsScreen> {
         const Divider(color: Colors.black, thickness: 2),
         const SizedBox(height: 10),
         const Text(
-          "Sale Discount Invoice",
+          "SALE DISCOUNT INVOICE",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400, color: Color(0xFF2B4C7E)),
         ),
         const SizedBox(height: 15),
@@ -128,23 +135,25 @@ class _SaleInvoiceDetailsScreenState extends State<SaleInvoiceDetailsScreen> {
             TableRow(children: [
               infoCell("Invoice No: ", data.billNo),
               infoCell("Party Name: ", data.schoolName),
-              infoCell("Bill Date: ", widget.date ?? (data.billDate != null ? data.billDate.toString().split("T")[0] : "")),
+              infoCell(
+                "Bill Date: ",
+                widget.date ?? formatDate(data.billDate),
+              ),
             ]),
             TableRow(children: [
               infoCell("Transport: ", data.transport.isNotEmpty ? data.transport : "SELF"),
               infoCell("Address: ", data.address),
-              infoCell("Rec. Date: ", widget.date ?? (data.receiveDate != null ? data.receiveDate.toString().split("T")[0] : "")),
+              infoCell(
+                "Rec. Date: ",
+                widget.date ?? formatDate(data.receiveDate),
+              ),
             ]),
             TableRow(children: [
                const SizedBox(),
                infoCell("Remark: ", data.remark),
                const SizedBox(),
             ]),
-            TableRow(children: [
-               infoCell("Vehicle No: ", ""),
-               infoCell("Vehicle Driver Name: ", ""),
-               infoCell("Vehicle Driver Mo No: ", ""),
-            ]),
+
           ],
         ),
       ],

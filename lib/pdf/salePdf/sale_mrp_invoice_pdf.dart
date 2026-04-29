@@ -16,7 +16,7 @@ class SaleMrpInvoicePdf {
       }
     }
 
-    /// GROUPING SAME AS UI
+    /// 🔥 GROUPING
     Map<String, List<SaleDetailsMrpItem>> groupedItems = {};
     for (var item in data.items) {
       String key = "${item.series}|${item.publication}";
@@ -31,6 +31,10 @@ class SaleMrpInvoicePdf {
       totalAmount += item.totalAmount;
     }
 
+    /// 🔥 DISCOUNT
+    double discountPercent = 10;
+    double totalDiscount = 0;
+
     int index = 1;
 
     pdf.addPage(
@@ -38,56 +42,45 @@ class SaleMrpInvoicePdf {
         margin: const pw.EdgeInsets.all(16),
         build: (context) => [
 
-          /// 🔷 HEADER (SAME AS UI)
+          /// 🔷 HEADER
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
-
               pw.Row(
-
                 children: [
-                  /// 🔹 LEFT LOGO TEXT
                   pw.Container(
                     width: 50,
                     child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.center,
                       children: [
-                        pw.Text(
-                          "GJ",
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        pw.Text(
-                          "BOOK WORLD",
-                          textAlign: pw.TextAlign.center,
-                          style: pw.TextStyle(fontSize: 8),
-                        ),
+                        pw.Text("GJ",
+                            style: pw.TextStyle(
+                                fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                        pw.Text("BOOK WORLD",
+                            textAlign: pw.TextAlign.center,
+                            style: pw.TextStyle(fontSize: 8)),
                       ],
                     ),
                   ),
                   pw.SizedBox(width: 20),
                   pw.Expanded(
                     child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.center,
                       children: [
-                      pw.Text(
-                        "GJ BOOK WORLD PVT. LTD.",
-                        style: pw.TextStyle(
-                          fontSize: 16,
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColor.fromInt(0xFF2B4C7E),
+                        pw.Text(
+                          "GJ BOOK WORLD PVT. LTD.",
+                          style: pw.TextStyle(
+                            fontSize: 16,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColor.fromInt(0xFF2B4C7E),
+                          ),
                         ),
-                      ),
-                      pw.SizedBox(height: 5),
-                      pw.Text(
-                        "D-1/20, SECTOR 22, GIDA, GORAKHPUR\nCont. - 9354918638\nGST No: 09AAGCG0650B1Z2",
-                        textAlign: pw.TextAlign.center,
-                        style: pw.TextStyle(fontSize: 8),
-                      ),
-                    ],
-                  ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          "GIDA GORAKHPUR\nCont. - 9354918638\nGST No: 09AAGCG0650B1Z2",
+                          textAlign: pw.TextAlign.center,
+                          style: pw.TextStyle(fontSize: 8),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -95,14 +88,10 @@ class SaleMrpInvoicePdf {
               pw.SizedBox(height: 10),
               pw.Divider(),
 
-              pw.Text(
-                "Sale MRP Invoice",
-                style: pw.TextStyle(fontSize: 14),
-              ),
-
+              pw.Text("Sale MRP Invoice", style: pw.TextStyle(fontSize: 14)),
               pw.SizedBox(height: 10),
 
-              /// INFO TABLE
+              /// 🔷 INFO
               pw.Table(
                 border: pw.TableBorder.all(),
                 children: [
@@ -137,7 +126,7 @@ class SaleMrpInvoicePdf {
                 decoration: pw.BoxDecoration(color: PdfColors.grey300),
                 children: [
                   cell("S.N.", bold: true),
-                  cell("Book Name (Title)", bold: true),
+                  cell("Book Name", bold: true),
                   cell("Qty", bold: true),
                   cell("Rate", bold: true),
                   cell("Amount", bold: true),
@@ -145,18 +134,14 @@ class SaleMrpInvoicePdf {
                 ],
               ),
 
-              /// GROUP DATA
+              /// 🔥 DATA
               ...groupedItems.entries.expand((entry) {
                 String series = entry.key.split('|')[0];
                 String publication = entry.key.split('|')[1];
                 List<SaleDetailsMrpItem> group = entry.value;
 
-                double groupQty = 0;
-                double groupAmount = 0;
-
                 List<pw.TableRow> rows = [];
 
-                /// SERIES HEADER
                 rows.add(
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.grey100),
@@ -172,8 +157,11 @@ class SaleMrpInvoicePdf {
                 );
 
                 for (var item in group) {
-                  groupQty += item.qty;
-                  groupAmount += item.totalAmount;
+                  double discAmount =
+                      item.totalAmount * discountPercent / 100;
+                  double finalAmount = item.totalAmount - discAmount;
+
+                  totalDiscount += discAmount;
 
                   rows.add(
                     pw.TableRow(
@@ -183,31 +171,16 @@ class SaleMrpInvoicePdf {
                         cell(item.qty.toStringAsFixed(0)),
                         cell(item.rate.toStringAsFixed(2)),
                         cell(item.totalAmount.toStringAsFixed(2)),
-                        cell(item.totalAmount.toStringAsFixed(2)),
+                        cell(finalAmount.toStringAsFixed(2)),
                       ],
                     ),
                   );
                 }
 
-                /// SUBTOTAL
-                rows.add(
-                  pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColors.orange100),
-                    children: [
-                      cell(""),
-                      cell("Series Subtotal", bold: true),
-                      cell(groupQty.toStringAsFixed(0), bold: true),
-                      cell(""),
-                      cell("Rs ${groupAmount.toStringAsFixed(2)}", bold: true),
-                      cell("Rs ${groupAmount.toStringAsFixed(2)}", bold: true),
-                    ],
-                  ),
-                );
-
                 return rows;
               }),
 
-              /// TOTAL
+              /// 🔥 SUBTOTAL
               pw.TableRow(
                 children: [
                   cell(""),
@@ -219,6 +192,21 @@ class SaleMrpInvoicePdf {
                 ],
               ),
 
+              /// 🔥 DISCOUNT
+              pw.TableRow(
+                decoration: pw.BoxDecoration(color: PdfColors.yellow100),
+                children: [
+                  cell(""),
+                  cell("Disc (${discountPercent.toStringAsFixed(0)}%)",
+                      bold: true),
+                  cell(""),
+                  cell(""),
+                  cell("Rs ${totalDiscount.toStringAsFixed(2)}", bold: true),
+                  cell(""),
+                ],
+              ),
+
+              /// 🔥 GRAND TOTAL
               pw.TableRow(
                 decoration: pw.BoxDecoration(color: PdfColors.green100),
                 children: [
@@ -226,7 +214,10 @@ class SaleMrpInvoicePdf {
                   cell("Grand Total", bold: true),
                   cell(totalQty.toStringAsFixed(0), bold: true),
                   cell(""),
-                  cell("Rs ${data.grandTotal.toStringAsFixed(2)}", bold: true),
+                  cell(
+                    "Rs ${(totalAmount - totalDiscount).toStringAsFixed(2)}",
+                    bold: true,
+                  ),
                   cell(""),
                 ],
               ),
@@ -234,7 +225,6 @@ class SaleMrpInvoicePdf {
           ),
 
           pw.SizedBox(height: 20),
-
           pw.Text("Invoice Created By: Admin"),
         ],
       ),
@@ -247,7 +237,6 @@ class SaleMrpInvoicePdf {
     return file;
   }
 
-  /// CELL
   static pw.Widget cell(String text, {bool bold = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(4),
@@ -261,7 +250,6 @@ class SaleMrpInvoicePdf {
     );
   }
 
-  /// INFO ROW (3 COLUMN)
   static pw.TableRow row3(
       String l1, String v1,
       String l2, String v2,
